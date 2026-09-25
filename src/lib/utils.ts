@@ -26,6 +26,7 @@ export function formatMoney(minor: number, currency = "USD") {
   return new Intl.NumberFormat("en-US", {
     style: "currency",
     currency,
+    currencyDisplay: "narrowSymbol",
     maximumFractionDigits: minor % 100 === 0 ? 0 : 2,
   }).format(minor / 100);
 }

@@ -3,22 +3,24 @@ import { Coins, CreditCard, Send } from "lucide-react";
 import { db } from "@/lib/db";
 import { requireWorkspace } from "@/lib/auth/guard";
 import { hasRole } from "@/lib/auth/permissions";
-import { CREDIT_PACKS } from "@/lib/services/credits";
+import { checkoutGateways } from "@/lib/payments";
+import { isCurrency, type Currency } from "@/lib/currency";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/misc";
 import { Table, TBody, TD, TH, THead, TR } from "@/components/ui/table";
-import { cn, formatDate, formatDateTime, formatNumber, pct, titleCase } from "@/lib/utils";
-import { BuyCredits, CancelPlan, PlanPicker } from "./billing-client";
+import { cn, formatDate, formatDateTime, formatMoney, formatNumber, pct, titleCase } from "@/lib/utils";
+import { BillingCurrencySwitch, BuyCredits, PlanPicker, RenewButton, type GatewayOption } from "./billing-client";
 
 export const metadata: Metadata = { title: "Billing & Plans" };
 
 const USAGE_CATS = ["LEAD_DISCOVERY", "EMAIL_VERIFICATION", "AI_GENERATION", "EMAIL_SENDING"] as const;
 
-export default async function BillingPage({ searchParams }: { searchParams: Promise<{ cat?: string; checkout?: string }> }) {
+export default async function BillingPage({ searchParams }: { searchParams: Promise<{ cat?: string; payment?: string }> }) {
   const ctx = await requireWorkspace();
   const sp = await searchParams;
-  const [plans, sub, credits, txns, sums] = await Promise.all([
+  const [ws, plans, sub, credits, txns, sums, payments] = await Promise.all([
+    db.workspace.findUniqueOrThrow({ where: { id: ctx.workspaceId }, select: { billingCurrency: true } }),
     db.plan.findMany({ orderBy: { sortOrder: "asc" } }),
     db.subscription.findUnique({ where: { workspaceId: ctx.workspaceId }, include: { plan: true } }),
     db.creditBalance.findUnique({ where: { workspaceId: ctx.workspaceId } }),
@@ -28,7 +30,10 @@ export default async function BillingPage({ searchParams }: { searchParams: Prom
       take: 50,
     }),
     db.creditTransaction.groupBy({ by: ["category"], where: { workspaceId: ctx.workspaceId }, _sum: { amount: true } }),
+    db.payment.findMany({ where: { workspaceId: ctx.workspaceId }, orderBy: { createdAt: "desc" }, take: 20 }),
   ]);
+  const currency: Currency = isCurrency(ws.billingCurrency) ? ws.billingCurrency : "USD";
+  const gateways: GatewayOption[] = checkoutGateways().map((g) => ({ key: g.key, label: g.label, live: g.live, currencies: [...g.currencies] }));
   const sent = await db.email.count({ where: { workspaceId: ctx.workspaceId, campaignId: { not: null }, sentAt: { gte: sub?.currentPeriodStart ?? new Date(0) } } });
   const plan = sub?.plan;
   const sendPct = plan ? pct(sent, plan.monthlySends) : 0;
@@ -36,15 +41,25 @@ export default async function BillingPage({ searchParams }: { searchParams: Prom
   const used = -USAGE_CATS.reduce((a, c) => a + sum(c), 0);
   const purchased = sum("PURCHASE");
   const isOwner = ctx.role === "OWNER";
+  const daysLeft = sub ? Math.ceil((sub.currentPeriodEnd.getTime() - Date.now()) / 86400_000) : 0;
+  const renewable = !!sub && sub.status !== "TRIALING" && (daysLeft <= 7 || sub.status === "PAST_DUE" || sub.status === "CANCELED");
+  const planCurrency: Currency = sub && isCurrency(sub.currency) ? sub.currency : currency;
 
   return (
     <div className="space-y-6">
-      {sp.checkout === "success" && (
-        <p className="rounded-lg border border-success/30 bg-success/10 px-4 py-3 text-[13px] text-success">
-          Payment received. Your plan or credits update as soon as Stripe confirms the payment (usually a few seconds) — refresh if you don’t see it yet.
+      {sp.payment === "success" && (
+        <p className="rounded-lg border border-success/30 bg-success/10 px-4 py-3 text-[13px] text-success">Payment confirmed — thank you! Your plan or credits have been updated.</p>
+      )}
+      {sp.payment === "pending" && (
+        <p className="rounded-lg border border-warning/30 bg-warning/10 px-4 py-3 text-[13px] text-warning">
+          Your payment is still processing. We’ll update your account automatically once the payment provider confirms it — refresh in a minute.
         </p>
       )}
-      {sp.checkout === "cancelled" && <p className="rounded-lg border bg-muted/40 px-4 py-3 text-[13px] text-muted-foreground">Checkout cancelled — you weren’t charged.</p>}
+      {sp.payment === "failed" && (
+        <p className="rounded-lg border border-danger/30 bg-danger/10 px-4 py-3 text-[13px] text-danger">That payment didn’t go through, so you weren’t charged. Please try again or use another payment method.</p>
+      )}
+      {sp.payment === "unknown" && <p className="rounded-lg border bg-muted/40 px-4 py-3 text-[13px] text-muted-foreground">We couldn’t find that payment. If you were charged, contact support with your receipt.</p>}
+      <BillingCurrencySwitch currency={currency} canChange={hasRole(ctx.role, "ADMIN")} />
       <div className="grid gap-6 xl:grid-cols-2">
         <Card className="relative overflow-hidden">
           <div className="absolute -right-16 -top-16 size-48 rounded-full bg-primary/10 blur-3xl" />
@@ -54,7 +69,9 @@ export default async function BillingPage({ searchParams }: { searchParams: Prom
                 <CreditCard className="size-4 text-primary" /> Current plan
               </CardTitle>
               <CardDescription>
-                {plan ? `${sub!.interval === "ANNUAL" ? "Billed annually" : "Billed monthly"} · renews ${formatDate(sub!.currentPeriodEnd)}` : "No active plan"}
+                {plan
+                  ? `${sub!.interval === "ANNUAL" ? "Annual" : "Monthly"} · prepaid in ${sub!.currency}${sub!.gateway ? ` via ${titleCase(sub!.gateway)}` : ""} · ${daysLeft > 0 ? `paid until ${formatDate(sub!.currentPeriodEnd)}` : `expired ${formatDate(sub!.currentPeriodEnd)}`}`
+                  : "No active plan"}
               </CardDescription>
             </div>
             {sub && <Badge tone={sub.status === "ACTIVE" ? "success" : sub.status === "CANCELED" ? "danger" : "info"}>{titleCase(sub.status)}</Badge>}
@@ -88,9 +105,10 @@ export default async function BillingPage({ searchParams }: { searchParams: Prom
                 </div>
               ))}
             </dl>
-            {isOwner && sub?.status !== "CANCELED" && (
-              <div className="mt-4 flex justify-end">
-                <CancelPlan />
+            <p className="mt-4 text-xs text-muted-foreground">Plans are prepaid and don’t renew automatically — we’ll remind you 5 days before your plan ends.</p>
+            {isOwner && renewable && plan && !plan.contactSales && (
+              <div className="mt-3 flex justify-end">
+                <RenewButton plan={{ ...plan }} interval={sub!.interval} currency={planCurrency} gateways={gateways} />
               </div>
             )}
           </CardContent>
@@ -129,7 +147,7 @@ export default async function BillingPage({ searchParams }: { searchParams: Prom
                 </div>
               ))}
             </div>
-            {hasRole(ctx.role, "ADMIN") && <BuyCredits packs={CREDIT_PACKS} />}
+            {hasRole(ctx.role, "ADMIN") && <BuyCredits currency={currency} gateways={gateways} />}
           </CardContent>
         </Card>
       </div>
@@ -138,8 +156,48 @@ export default async function BillingPage({ searchParams }: { searchParams: Prom
         plans={plans.map((p) => ({ ...p }))}
         currentKey={plan?.key ?? null}
         currentInterval={sub?.interval ?? "MONTHLY"}
+        currency={currency}
+        gateways={gateways}
         canChange={isOwner}
+        renewable={renewable}
       />
+
+      {payments.length > 0 && (
+        <Card className="overflow-hidden">
+          <CardHeader>
+            <div>
+              <CardTitle>Payments</CardTitle>
+              <CardDescription>Your recent plan and credit purchases.</CardDescription>
+            </div>
+          </CardHeader>
+          <Table>
+            <THead>
+              <tr>
+                <TH>Date</TH>
+                <TH>Item</TH>
+                <TH>Paid with</TH>
+                <TH>Reference</TH>
+                <TH>Status</TH>
+                <TH className="text-right">Amount</TH>
+              </tr>
+            </THead>
+            <TBody>
+              {payments.map((p) => (
+                <TR key={p.id}>
+                  <TD className="whitespace-nowrap text-muted-foreground">{formatDateTime(p.createdAt)}</TD>
+                  <TD>{p.purpose === "PLAN" ? `${titleCase(p.planKey ?? "")} plan · ${p.interval === "ANNUAL" ? "12 months" : "1 month"}` : `${formatNumber(p.credits ?? 0)} credits`}</TD>
+                  <TD>{titleCase(p.gateway)}</TD>
+                  <TD className="font-mono text-xs text-muted-foreground">{p.reference}</TD>
+                  <TD>
+                    <Badge tone={p.status === "SUCCESS" ? "success" : p.status === "FAILED" ? "danger" : "warning"}>{p.status === "SUCCESS" ? "Paid" : titleCase(p.status)}</Badge>
+                  </TD>
+                  <TD className="text-right font-medium tabular-nums">{formatMoney(p.amountMinor, p.currency)}</TD>
+                </TR>
+              ))}
+            </TBody>
+          </Table>
+        </Card>
+      )}
 
       <Card id="credits" className="overflow-hidden">
         <CardHeader>

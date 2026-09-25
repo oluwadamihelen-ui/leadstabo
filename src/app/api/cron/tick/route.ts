@@ -3,6 +3,7 @@ import { safeEqual } from "@/lib/crypto";
 import { processDueSends } from "@/lib/services/campaign-engine";
 import { advanceWarmups } from "@/lib/services/warmup";
 import { syncAllInboxes } from "@/lib/services/mailbox-sync";
+import { runBillingCycle } from "@/lib/services/billing";
 
 // Scheduler entrypoint for serverless deployments. Protect with CRON_SECRET.
 export async function POST(req: NextRequest) {
@@ -12,5 +13,6 @@ export async function POST(req: NextRequest) {
   const sends = await processDueSends();
   const warmups = await advanceWarmups();
   const sync = await syncAllInboxes();
-  return NextResponse.json({ ok: true, ...sends, ...warmups, ...sync });
+  const billing = await runBillingCycle();
+  return NextResponse.json({ ok: true, ...sends, ...warmups, ...sync, creditGrants: billing.granted });
 }

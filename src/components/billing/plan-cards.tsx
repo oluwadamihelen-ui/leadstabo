@@ -2,6 +2,7 @@
 import { Check, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { CURRENCIES, planChargeAmount, planMonthlyPrice, type Currency } from "@/lib/currency";
 import { cn, formatMoney, formatNumber } from "@/lib/utils";
 
 export interface PlanRow {
@@ -10,7 +11,8 @@ export interface PlanRow {
   tagline: string;
   monthlyPrice: number;
   annualPrice: number;
-  currency: string;
+  monthlyPriceNgn: number;
+  annualPriceNgn: number;
   monthlySends: number;
   leadCredits: number;
   inboxLimit: number;
@@ -21,11 +23,27 @@ export interface PlanRow {
   contactSales: boolean;
 }
 
-export function PlanCards({ plans, interval, currentKey, onChoose, busyKey }: { plans: PlanRow[]; interval: "MONTHLY" | "ANNUAL"; currentKey?: string | null; onChoose: (p: PlanRow) => void; busyKey?: string | null }) {
+export function PlanCards({
+  plans,
+  interval,
+  currency,
+  currentKey,
+  onChoose,
+  busyKey,
+  actionLabel,
+}: {
+  plans: PlanRow[];
+  interval: "MONTHLY" | "ANNUAL";
+  currency: Currency;
+  currentKey?: string | null;
+  onChoose: (p: PlanRow) => void;
+  busyKey?: string | null;
+  actionLabel?: (p: PlanRow) => string;
+}) {
   return (
     <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
       {plans.map((p) => {
-        const price = interval === "ANNUAL" ? p.annualPrice : p.monthlyPrice;
+        const price = planMonthlyPrice(p, currency, interval);
         const current = currentKey === p.key;
         return (
           <div key={p.key} className={cn("relative flex flex-col rounded-xl border bg-card p-5", p.recommended && "border-primary/60 glow-primary")}>
@@ -44,18 +62,20 @@ export function PlanCards({ plans, interval, currentKey, onChoose, busyKey }: { 
                 <p className="text-3xl font-semibold tracking-tight">Custom</p>
               ) : (
                 <p className="text-3xl font-semibold tracking-tight">
-                  {formatMoney(price, p.currency)}
+                  {formatMoney(price, currency)}
                   <span className="text-sm font-normal text-muted-foreground">/mo</span>
                 </p>
               )}
-              <p className="mt-0.5 h-4 text-xs text-muted-foreground">{!p.contactSales && interval === "ANNUAL" ? `${formatMoney(price * 12, p.currency)} billed yearly` : ""}</p>
+              <p className="mt-0.5 h-4 text-xs text-muted-foreground">
+                {!p.contactSales && interval === "ANNUAL" ? `${formatMoney(planChargeAmount(p, currency, interval), currency)} billed yearly` : ""}
+              </p>
             </div>
             <ul className="mt-4 flex-1 space-y-2 text-[13px]">
               <li className="flex gap-2">
                 <Check className="mt-0.5 size-4 shrink-0 text-primary" /> {formatNumber(p.monthlySends)} emails / month
               </li>
               <li className="flex gap-2">
-                <Check className="mt-0.5 size-4 shrink-0 text-primary" /> {formatNumber(p.leadCredits)} lead credits
+                <Check className="mt-0.5 size-4 shrink-0 text-primary" /> {formatNumber(p.leadCredits)} lead credits / month
               </li>
               <li className="flex gap-2">
                 <Check className="mt-0.5 size-4 shrink-0 text-primary" /> {p.inboxLimit} sending inboxes
@@ -66,8 +86,8 @@ export function PlanCards({ plans, interval, currentKey, onChoose, busyKey }: { 
                 </li>
               ))}
             </ul>
-            <Button className="mt-5 w-full" variant={p.recommended ? "default" : "secondary"} disabled={current} loading={busyKey === p.key} onClick={() => onChoose(p)}>
-              {current ? "Current plan" : p.contactSales ? "Contact sales" : "Choose " + p.name}
+            <Button className="mt-5 w-full" variant={p.recommended ? "default" : "secondary"} loading={busyKey === p.key} onClick={() => onChoose(p)}>
+              {actionLabel ? actionLabel(p) : p.contactSales ? "Contact sales" : `Choose ${p.name}`}
             </Button>
           </div>
         );
@@ -89,3 +109,20 @@ export function IntervalToggle({ value, onChange }: { value: "MONTHLY" | "ANNUAL
   );
 }
 
+export function CurrencyToggle({ value, onChange }: { value: Currency; onChange: (v: Currency) => void }) {
+  return (
+    <div className="inline-flex rounded-lg border bg-muted/50 p-0.5 text-[13px]" role="radiogroup" aria-label="Currency">
+      {CURRENCIES.map((c) => (
+        <button
+          key={c}
+          role="radio"
+          aria-checked={value === c}
+          onClick={() => onChange(c)}
+          className={cn("rounded-md px-3 py-1.5 font-medium", value === c ? "bg-card shadow-sm" : "text-muted-foreground")}
+        >
+          {c === "NGN" ? "₦ Naira" : "$ Dollar"}
+        </button>
+      ))}
+    </div>
+  );
+}

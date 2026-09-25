@@ -115,23 +115,6 @@ export interface DnsProvider {
   check(domain: string, records: DnsRecordCheck[]): Promise<Record<string, "VALID" | "INVALID" | "PENDING">>;
 }
 
-/** Either the change applies now (mock), or the user is sent to a hosted checkout (Stripe). */
-export type PaymentStart = { mode: "immediate"; providerRef: string } | { mode: "redirect"; url: string };
-
-export interface PaymentsProvider {
-  name: string;
-  live: boolean;
-  startPlanChange(input: {
-    workspaceId: string;
-    customerEmail: string;
-    plan: { key: string; name: string; monthlyPrice: number; annualPrice: number; currency: string };
-    interval: "MONTHLY" | "ANNUAL";
-    currentSubscriptionRef?: string | null;
-  }): Promise<PaymentStart>;
-  startCreditPurchase(input: { workspaceId: string; customerEmail: string; credits: number; amountMinor: number }): Promise<PaymentStart>;
-  cancel(subscriptionRef: string | null): Promise<void>;
-}
-
 export type AiTask =
   | "generate_email"
   | "improve"

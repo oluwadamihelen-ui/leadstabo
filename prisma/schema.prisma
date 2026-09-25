@@ -64,7 +64,7 @@ model Workspace {
   name             String
   slug             String   @unique
   outreachSettings Json     @default("{}")
-  stripeCustomerId String?  @unique
+  billingCurrency  String   @default("USD") // "USD" | "NGN" — the workspace's chosen billing currency
   createdAt        DateTime @default(now())
 
   members          WorkspaceMember[]
@@ -89,6 +89,7 @@ model Workspace {
   offers           Offer[]
   jobs             Job[]
   verificationRuns VerificationRun[]
+  payments         Payment[]
 }
 
 enum Role {
@@ -152,23 +153,25 @@ model ApiKey {
 // ─────────────────────────────── Billing ───────────────────────────────
 
 model Plan {
-  id            String         @id @default(cuid())
-  key           String         @unique
-  name          String
-  tagline       String
-  monthlyPrice  Int // minor units (cents)
-  annualPrice   Int // per-month price when billed annually, minor units
-  currency      String         @default("USD")
-  monthlySends  Int
-  leadCredits   Int
-  inboxLimit    Int
-  teamMembers   Int
-  supportLevel  String
-  features      String[]
-  recommended   Boolean        @default(false)
-  contactSales  Boolean        @default(false)
-  sortOrder     Int            @default(0)
-  subscriptions Subscription[]
+  id              String         @id @default(cuid())
+  key             String         @unique
+  name            String
+  tagline         String
+  monthlyPrice    Int // USD, minor units (cents)
+  annualPrice     Int // USD per-month price when billed annually, minor units
+  monthlyPriceNgn Int            @default(0) // NGN, minor units (kobo)
+  annualPriceNgn  Int            @default(0) // NGN per-month price when billed annually, kobo
+  currency        String         @default("USD")
+  monthlySends    Int
+  leadCredits     Int
+  inboxLimit      Int
+  teamMembers     Int
+  supportLevel    String
+  features        String[]
+  recommended     Boolean        @default(false)
+  contactSales    Boolean        @default(false)
+  sortOrder       Int            @default(0)
+  subscriptions   Subscription[]
 }
 
 enum BillingInterval {
@@ -191,11 +194,50 @@ model Subscription {
   plan               Plan               @relation(fields: [planId], references: [id])
   interval           BillingInterval    @default(MONTHLY)
   status             SubscriptionStatus @default(ACTIVE)
+  currency           String             @default("USD")
+  gateway            String?
+  lastCreditGrantAt  DateTime?
+  renewalRemindedAt  DateTime?
   currentPeriodStart DateTime
   currentPeriodEnd   DateTime
   providerRef        String?
   createdAt          DateTime           @default(now())
   updatedAt          DateTime           @updatedAt
+}
+
+enum PaymentStatus {
+  PENDING
+  SUCCESS
+  FAILED
+}
+
+enum PaymentPurpose {
+  PLAN
+  CREDITS
+}
+
+/// One hosted-checkout attempt (Paystack, Flutterwave, Korapay or test mode).
+/// The amount is fixed server-side at creation and checked against the gateway on verification.
+model Payment {
+  id            String           @id @default(cuid())
+  workspaceId   String
+  workspace     Workspace        @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  userId        String?
+  gateway       String // paystack | flutterwave | korapay | test
+  reference     String           @unique
+  purpose       PaymentPurpose
+  planKey       String?
+  interval      BillingInterval?
+  credits       Int?
+  amountMinor   Int
+  currency      String
+  status        PaymentStatus    @default(PENDING)
+  gatewayRef    String?
+  failureReason String?
+  createdAt     DateTime         @default(now())
+  paidAt        DateTime?
+
+  @@index([workspaceId, createdAt])
 }
 
 model CreditBalance {

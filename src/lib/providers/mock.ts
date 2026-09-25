@@ -4,7 +4,6 @@ import type {
   AiProvider,
   DnsProvider,
   EmailProvider,
-  PaymentsProvider,
   VerificationProvider,
   VerificationResult,
 } from "./types";
@@ -65,18 +64,6 @@ export const mockDns: DnsProvider = {
     for (const r of records) out[r.kind] = domain.includes("broken") && r.kind === "DMARC" ? "INVALID" : "VALID";
     return out;
   },
-};
-
-export const mockPayments: PaymentsProvider = {
-  name: "mock",
-  live: false,
-  async startPlanChange() {
-    return { mode: "immediate", providerRef: `sub_mock_${randomUUID().slice(0, 8)}` };
-  },
-  async startCreditPurchase() {
-    return { mode: "immediate", providerRef: `pi_mock_${randomUUID().slice(0, 8)}` };
-  },
-  async cancel() {},
 };
 
 export { mockAi };

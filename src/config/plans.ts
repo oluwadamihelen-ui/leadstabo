@@ -1,8 +1,10 @@
-// Plan catalogue. Seeded into the `Plan` table — edit here (or directly in the DB)
+// Plan catalogue (USD in cents, NGN in kobo). Seeded into the `Plan` table — edit here (or directly in the DB)
 // to change pricing; nothing in the UI hardcodes prices.
 export const PLAN_CATALOG = [
   {
     key: "starter",
+    monthlyPriceNgn: 5_900_000,
+    annualPriceNgn: 4_700_000,
     name: "Starter",
     tagline: "For founders sending their first campaigns",
     monthlyPrice: 3900,
@@ -19,6 +21,8 @@ export const PLAN_CATALOG = [
   },
   {
     key: "growth",
+    monthlyPriceNgn: 14_900_000,
+    annualPriceNgn: 11_900_000,
     name: "Growth",
     tagline: "For teams building a repeatable outbound engine",
     monthlyPrice: 9900,
@@ -35,6 +39,8 @@ export const PLAN_CATALOG = [
   },
   {
     key: "scale",
+    monthlyPriceNgn: 37_900_000,
+    annualPriceNgn: 29_900_000,
     name: "Scale",
     tagline: "For agencies and high-volume sales orgs",
     monthlyPrice: 24900,
@@ -51,6 +57,8 @@ export const PLAN_CATALOG = [
   },
   {
     key: "enterprise",
+    monthlyPriceNgn: 0,
+    annualPriceNgn: 0,
     name: "Enterprise",
     tagline: "Custom infrastructure, security and volume",
     monthlyPrice: 0,

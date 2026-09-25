@@ -11,13 +11,6 @@ export const CREDIT_COSTS = {
   EMAIL_SEND: 0,
 } as const;
 
-export const CREDIT_PACKS = [
-  { credits: 1_000, priceMinor: 1_900 },
-  { credits: 5_000, priceMinor: 7_900 },
-  { credits: 20_000, priceMinor: 24_900 },
-  { credits: 100_000, priceMinor: 99_900 },
-];
-
 const LOW_CREDIT_THRESHOLD = 250;
 
 /** Atomically deducts credits; throws a user-facing error when the balance is insufficient. */

@@ -3,6 +3,7 @@ import { Bot, CreditCard, Globe, Mail, MailCheck, Search } from "lucide-react";
 import { db } from "@/lib/db";
 import { requireWorkspace } from "@/lib/auth/guard";
 import { providerStatus } from "@/lib/providers";
+import { liveGateways } from "@/lib/payments";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 
@@ -14,6 +15,8 @@ export default async function IntegrationsPage() {
   const connectedInboxes = await db.inbox.count({ where: { workspaceId: ctx.workspaceId, encryptedCredentials: { not: null } } });
   const appUrl = process.env.APP_URL ?? "http://localhost:3000";
   const publicUrl = !/localhost|127\.0\.0\.1/.test(appUrl);
+  const gateways = liveGateways();
+  const base = appUrl.replace(/\/$/, "");
 
   const rows = [
     {
@@ -65,11 +68,19 @@ export default async function IntegrationsPage() {
     },
     {
       icon: CreditCard,
-      title: "Payments",
-      live: p.payments.live,
-      provider: p.payments.live ? "Stripe Checkout" : "Test mode (instant, no charge)",
-      detail: p.payments.live ? "Plans and credit packs are paid through Stripe; access is granted by the webhook." : "Plan changes and credit packs apply instantly without payment.",
-      env: ["STRIPE_SECRET_KEY=sk_live_…", "STRIPE_WEBHOOK_SECRET=whsec_…", "Webhook URL: /api/webhooks/stripe"],
+      title: "Payments (Naira & Dollars)",
+      live: gateways.length > 0,
+      provider: gateways.length ? gateways.map((g) => `${g.label} (${g.currencies.join(", ")})`).join(" · ") : "Test checkout (no real charge)",
+      detail: gateways.length
+        ? "Customers pick Naira or Dollars and choose a payment provider. Every payment is re-verified with the provider before a plan or credits are granted."
+        : "No payment keys set, so checkout completes instantly without charging. Add at least one Paystack, Flutterwave or Korapay key to take real payments.",
+      env: [
+        "PAYSTACK_SECRET_KEY=sk_live_…",
+        "FLUTTERWAVE_SECRET_KEY=FLWSECK-…",
+        "FLUTTERWAVE_WEBHOOK_HASH=…",
+        "KORAPAY_SECRET_KEY=sk_live_…",
+        `Webhooks: ${base}/api/webhooks/paystack | flutterwave | korapay`,
+      ],
     },
     {
       icon: Bot,
