@@ -25,8 +25,8 @@ export function Confirm({
     <A.Root open={open} onOpenChange={setOpen}>
       <A.Trigger asChild>{trigger}</A.Trigger>
       <A.Portal>
-        <A.Overlay className="fixed inset-0 z-50 bg-black/60 backdrop-blur-[2px]" />
-        <A.Content className="fixed left-1/2 top-1/2 z-50 w-[calc(100%-2rem)] max-w-md -translate-x-1/2 -translate-y-1/2 rounded-xl border bg-popover p-5 shadow-2xl animate-fade-in">
+        <A.Overlay className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto bg-black/60 p-4 backdrop-blur-[2px]">
+        <A.Content className="relative w-full max-w-md rounded-xl border bg-popover p-5 shadow-2xl animate-fade-in">
           <A.Title className="text-base font-semibold">{title}</A.Title>
           <A.Description className="mt-1.5 text-[13px] text-muted-foreground">{description}</A.Description>
           <div className="mt-5 flex justify-end gap-2">
@@ -50,6 +50,7 @@ export function Confirm({
             </Button>
           </div>
         </A.Content>
+        </A.Overlay>
       </A.Portal>
     </A.Root>
   );

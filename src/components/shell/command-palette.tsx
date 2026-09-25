@@ -109,8 +109,8 @@ export function CommandPalette({ open, onOpenChange }: { open: boolean; onOpenCh
   return (
     <D.Root open={open} onOpenChange={onOpenChange}>
       <D.Portal>
-        <D.Overlay className="fixed inset-0 z-50 bg-black/60 backdrop-blur-[2px]" />
-        <D.Content className="fixed left-1/2 top-[12vh] z-50 w-[calc(100%-2rem)] max-w-xl -translate-x-1/2 overflow-hidden rounded-xl border bg-popover shadow-2xl animate-fade-in">
+        <D.Overlay className="fixed inset-0 z-50 flex justify-center bg-black/60 px-4 pt-[12vh] backdrop-blur-[2px]">
+        <D.Content className="h-fit w-full max-w-xl overflow-hidden rounded-xl border bg-popover shadow-2xl animate-fade-in">
           <D.Title className="sr-only">Search</D.Title>
           <D.Description className="sr-only">Search across Leadstabo</D.Description>
           <Command shouldFilter={false} className="[&_[cmdk-group-heading]]:label-caps [&_[cmdk-group-heading]]:px-3 [&_[cmdk-group-heading]]:pb-1 [&_[cmdk-group-heading]]:pt-3">
@@ -156,6 +156,7 @@ export function CommandPalette({ open, onOpenChange }: { open: boolean; onOpenCh
             </Command.List>
           </Command>
         </D.Content>
+        </D.Overlay>
       </D.Portal>
     </D.Root>
   );

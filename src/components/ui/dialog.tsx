@@ -23,15 +23,17 @@ export function DialogContent({
   const w = { sm: "max-w-sm", md: "max-w-lg", lg: "max-w-2xl", xl: "max-w-4xl" }[size];
   return (
     <D.Portal>
-      <D.Overlay className="fixed inset-0 z-50 bg-black/60 backdrop-blur-[2px] data-[state=open]:animate-fade-in" />
-      <D.Content
-        className={cn(
-          "fixed left-1/2 top-1/2 z-50 max-h-[90vh] w-[calc(100%-2rem)] -translate-x-1/2 -translate-y-1/2 overflow-y-auto rounded-xl border bg-popover p-5 shadow-2xl data-[state=open]:animate-fade-in",
-          w,
-          className,
-        )}
-        {...props}
-      >
+      {/* The overlay is the centring + scroll container, so no transforms are needed on the panel. */}
+      <D.Overlay className="fixed inset-0 z-50 flex items-end justify-center overflow-y-auto bg-black/60 p-0 backdrop-blur-[2px] data-[state=open]:animate-fade-in sm:items-center sm:p-4">
+        <D.Content
+          className={cn(
+            "relative my-auto flex max-h-[92dvh] w-full flex-col overflow-y-auto rounded-t-2xl border bg-popover p-5 shadow-2xl data-[state=open]:animate-fade-in sm:max-h-[calc(100dvh-2rem)] sm:rounded-xl",
+            "mb-0 sm:mb-auto",
+            w,
+            className,
+          )}
+          {...props}
+        >
         <div className="mb-4 pr-8">
           <D.Title className="text-base font-semibold tracking-tight">{title}</D.Title>
           {description ? (
@@ -41,15 +43,16 @@ export function DialogContent({
           )}
         </div>
         {children}
-        <D.Close className="absolute right-4 top-4 rounded-md p-1 text-muted-foreground hover:bg-accent hover:text-foreground">
-          <X className="size-4" />
-          <span className="sr-only">Close</span>
-        </D.Close>
-      </D.Content>
+          <D.Close className="absolute right-4 top-4 rounded-md p-1 text-muted-foreground hover:bg-accent hover:text-foreground">
+            <X className="size-4" />
+            <span className="sr-only">Close</span>
+          </D.Close>
+        </D.Content>
+      </D.Overlay>
     </D.Portal>
   );
 }
 
 export function DialogFooter({ className, ...props }: React.HTMLAttributes<HTMLDivElement>) {
-  return <div className={cn("mt-5 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end", className)} {...props} />;
+  return <div className={cn("sticky -bottom-5 -mx-5 mt-5 flex flex-col-reverse gap-2 border-t bg-popover px-5 py-3 sm:static sm:mx-0 sm:border-0 sm:bg-transparent sm:p-0 sm:flex-row sm:justify-end", className)} {...props} />;
 }
