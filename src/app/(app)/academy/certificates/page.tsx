@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { BRAND } from "@/config/brand";
 import Link from "next/link";
 import { Award, Lock } from "lucide-react";
 import { db } from "@/lib/db";
@@ -33,14 +34,16 @@ export default async function CertificatesPage() {
               <div className="relative pl-6">
                 <div className="flex items-center gap-2">
                   <LogoMark className="size-6" />
-                  <span className="text-[11px] font-semibold uppercase tracking-[0.3em] text-white/50">Leadstabo Academy</span>
+                  <span className="text-[11px] font-semibold uppercase tracking-[0.3em] text-white/50">Leadabo Academy</span>
                 </div>
                 <p className="mt-8 text-[11px] uppercase tracking-[0.25em] text-[#f4782a]">Certificate of completion</p>
                 <p className="mt-3 text-3xl font-semibold tracking-tight">{ctx.user.name}</p>
                 <p className="mt-2 text-sm text-white/60">has successfully completed</p>
                 <p className="mt-1 text-lg font-medium">{c.course.title}</p>
                 <div className="mt-8 flex items-end justify-between text-xs text-white/50">
-                  <span>Issued {formatDate(c.issuedAt)}</span>
+                  <span>
+                    Issued {formatDate(c.issuedAt)} · {BRAND.company}
+                  </span>
                   <span className="font-mono">{c.code}</span>
                 </div>
               </div>

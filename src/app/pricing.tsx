@@ -19,7 +19,7 @@ export function Pricing({ plans, ctaHref }: { plans: PlanRow[]; ctaHref: string 
         interval={interval}
         currency={currency}
         onChoose={(p) => {
-          if (p.contactSales) window.location.href = "mailto:sales@leadstabo.com?subject=Leadstabo%20Enterprise";
+          if (p.contactSales) window.location.href = "mailto:sales@leadabo.com?subject=Leadabo%20Enterprise";
           else router.push(ctaHref === "/dashboard" ? "/settings/billing" : `/signup?plan=${p.key}`);
         }}
       />

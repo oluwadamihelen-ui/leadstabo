@@ -1,4 +1,4 @@
-// Leadstabo data model.
+// Leadabo data model.
 // Every tenant-owned row carries `workspaceId`; all queries are scoped through
 // `requireWorkspace()` so one workspace can never read another's data.
 

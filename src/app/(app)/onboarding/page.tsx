@@ -17,7 +17,7 @@ export default async function OnboardingPage() {
   ];
   return (
     <div className="mx-auto max-w-3xl py-8 text-center">
-      <p className="label-caps text-primary">Welcome to Leadstabo</p>
+      <p className="label-caps text-primary">Welcome to Leadabo</p>
       <h1 className="mt-3 text-3xl font-semibold tracking-tight sm:text-4xl">Let’s build your outbound engine, {first}.</h1>
       <p className="mx-auto mt-3 max-w-xl text-muted-foreground">Your workspace “{ctx.workspace.name}” is ready with 500 lead credits. Choose where to start.</p>
       <div className="mt-10 grid gap-4 text-left sm:grid-cols-3">

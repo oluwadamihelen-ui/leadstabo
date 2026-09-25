@@ -17,7 +17,7 @@ export function SlidePlayer({ dayLabel, title, summary, keyPoints, videoUrl, dur
   const slides: Slide[] = [
     { eyebrow: dayLabel, title, body: summary },
     ...keyPoints.map((k, i) => ({ eyebrow: `Key point ${i + 1} of ${keyPoints.length}`, title: k })),
-    { eyebrow: "Recap", title: "Now apply it inside Leadstabo", body: "Mark the lesson complete when you’ve finished the task below." },
+    { eyebrow: "Recap", title: "Now apply it inside Leadabo", body: "Mark the lesson complete when you’ve finished the task below." },
   ];
   const [i, setI] = useState(0);
   const [playing, setPlaying] = useState(false);
@@ -61,7 +61,7 @@ export function SlidePlayer({ dayLabel, title, summary, keyPoints, videoUrl, dur
           <h2 className={cn("mt-3 font-semibold tracking-tight", i === 0 ? "text-2xl sm:text-4xl lg:text-5xl" : "text-xl sm:text-3xl lg:text-4xl")}>{s.title}</h2>
           {s.body && <p className="mt-4 max-w-2xl text-sm text-white/60 sm:text-base">{s.body}</p>}
         </div>
-        <p className="absolute right-[7%] top-[8%] text-[10px] font-semibold uppercase tracking-[0.3em] text-white/30">Leadstabo Academy</p>
+        <p className="absolute right-[7%] top-[8%] text-[10px] font-semibold uppercase tracking-[0.3em] text-white/30">Leadabo Academy</p>
         {!playing && i === 0 && t === 0 && (
           <button onClick={() => setPlaying(true)} className="absolute bottom-[20%] right-[7%] flex items-center gap-2 rounded-xl border border-[#f4782a]/40 bg-[#f4782a]/20 px-4 py-2.5 text-sm font-medium text-[#f4782a] backdrop-blur transition-transform hover:scale-105" aria-label="Play lesson">
             <Play className="size-4 fill-[#f4782a]" /> Play lesson

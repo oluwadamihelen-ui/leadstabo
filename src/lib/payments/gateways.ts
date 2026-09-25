@@ -100,7 +100,7 @@ export function createFlutterwave(secret: string, webhookHash?: string): Payment
             currency: i.currency,
             redirect_url: i.callbackUrl,
             customer: { email: i.email, name: i.name },
-            customizations: { title: "Leadstabo", description: i.description },
+            customizations: { title: "Leadabo", description: i.description },
             meta: i.metadata,
           }),
           signal: AbortSignal.timeout(20_000),

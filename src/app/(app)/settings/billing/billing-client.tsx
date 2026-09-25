@@ -11,6 +11,7 @@ import { CurrencyToggle, IntervalToggle, PlanCards, type PlanRow } from "@/compo
 import { setBillingCurrency, startCreditCheckout, startPlanCheckout } from "@/server/actions/settings";
 import { CREDIT_PACKS, packPrice, planChargeAmount, type Currency } from "@/lib/currency";
 import { cn, formatMoney, formatNumber } from "@/lib/utils";
+import { BRAND } from "@/config/brand";
 
 export interface GatewayOption {
   key: string;
@@ -117,6 +118,9 @@ export function CheckoutDialog({
             ))}
           </div>
         )}
+        <p className="mt-4 text-xs leading-5 text-muted-foreground">
+          Payments are collected by {BRAND.company}, the company behind {BRAND.name}. That’s the name you may see on your bank statement or receipt.
+        </p>
         <DialogFooter>
           <Button variant="secondary" onClick={onClose}>
             Cancel
@@ -178,7 +182,7 @@ export function PlanPicker({
           currentKey={currentInterval === interval ? currentKey : null}
           actionLabel={(p) => (p.contactSales ? "Contact sales" : p.key === currentKey && currentInterval === interval ? (renewable ? "Renew plan" : "Extend plan") : `Choose ${p.name}`)}
           onChoose={(p) => {
-            if (p.contactSales) return void (window.location.href = "mailto:sales@leadstabo.com?subject=Leadstabo%20Enterprise");
+            if (p.contactSales) return void (window.location.href = "mailto:sales@leadabo.com?subject=Leadabo%20Enterprise");
             if (!canChange) return toast.error("Only the workspace owner can change plans");
             setPurchase({ kind: "plan", plan: p, interval });
           }}

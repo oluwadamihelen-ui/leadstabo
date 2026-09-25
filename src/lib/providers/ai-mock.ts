@@ -60,7 +60,7 @@ function run(task: AiTask, ctx: AiContext): AiResult {
         subjects: [
           `${first}, quick question`,
           `Idea for ${company}`,
-          `${company} + ${offer?.name ?? "Leadstabo"}`,
+          `${company} + ${offer?.name ?? "Leadabo"}`,
           `Re: ${industry} pipeline`,
           `Worth 15 minutes, ${first}?`,
         ],

@@ -50,18 +50,18 @@ export function LoginForm() {
         </Button>
       </form>
       <div className="mt-6 rounded-lg border border-dashed bg-muted/30 p-3 text-xs text-muted-foreground">
-        Demo account: <span className="font-mono text-foreground">demo@leadstabo.com</span> /{" "}
-        <span className="font-mono text-foreground">leadstabo123</span>
+        Demo account: <span className="font-mono text-foreground">demo@leadabo.com</span> /{" "}
+        <span className="font-mono text-foreground">leadabo123</span>
         <button
           type="button"
           className="ml-2 text-primary hover:underline"
-          onClick={() => setForm({ ...form, email: "demo@leadstabo.com", password: "leadstabo123" })}
+          onClick={() => setForm({ ...form, email: "demo@leadabo.com", password: "leadabo123" })}
         >
           Fill in
         </button>
       </div>
       <p className="mt-6 text-center text-sm text-muted-foreground">
-        New to Leadstabo?{" "}
+        New to Leadabo?{" "}
         <Link href="/signup" className="font-medium text-primary hover:underline">
           Create an account
         </Link>

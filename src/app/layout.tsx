@@ -4,12 +4,17 @@ import { GeistSans } from "geist/font/sans";
 import { GeistMono } from "geist/font/mono";
 import { Toaster } from "sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
+import { BRAND } from "@/config/brand";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: { default: "Leadstabo — Build your outbound engine", template: "%s · Leadstabo" },
+  title: { default: "Leadabo — Build your outbound engine", template: "%s · Leadabo" },
   description:
     "Find the right leads, reach them with personalized outreach, and turn cold prospects into conversations — all from one platform.",
+  applicationName: BRAND.name,
+  authors: [{ name: BRAND.company }],
+  creator: BRAND.company,
+  publisher: BRAND.company,
   icons: { icon: "/icon.svg" },
 };
 

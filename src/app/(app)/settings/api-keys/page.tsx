@@ -23,7 +23,7 @@ export default async function ApiKeysPage() {
         <CardHeader>
           <div>
             <CardTitle>API keys</CardTitle>
-            <CardDescription>Use keys to access the Leadstabo REST API. Keys are shown once and stored hashed.</CardDescription>
+            <CardDescription>Use keys to access the Leadabo REST API. Keys are shown once and stored hashed.</CardDescription>
           </div>
           {isAdmin && <CreateKeyButton />}
         </CardHeader>

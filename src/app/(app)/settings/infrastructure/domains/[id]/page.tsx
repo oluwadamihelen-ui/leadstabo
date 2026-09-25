@@ -16,7 +16,7 @@ export const metadata: Metadata = { title: "Domain setup" };
 const STEPS = [
   { kind: "ENTER", title: "Enter domain", desc: "Domain added to your workspace." },
   { kind: "OWNERSHIP", title: "Verify DNS", desc: "Prove you own the domain with a TXT record." },
-  { kind: "SPF", title: "Configure SPF", desc: "Authorise Leadstabo and your mail provider to send." },
+  { kind: "SPF", title: "Configure SPF", desc: "Authorise Leadabo and your mail provider to send." },
   { kind: "DKIM", title: "Configure DKIM", desc: "Cryptographically sign every email." },
   { kind: "DMARC", title: "Configure DMARC", desc: "Tell receivers how to handle failures and get reports." },
   { kind: "INBOXES", title: "Add inboxes", desc: "Connect 2–3 mailboxes on this domain." },

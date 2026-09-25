@@ -1,7 +1,7 @@
 /** DNS records a customer must publish for a sending domain (checked live by the DNS provider). */
 export function requiredRecords(domain: string, token: string) {
   return [
-    { kind: "OWNERSHIP", recordType: "TXT", host: `_leadstabo.${domain}`, expectedValue: `leadstabo-verify=${token}` },
+    { kind: "OWNERSHIP", recordType: "TXT", host: `_leadabo.${domain}`, expectedValue: `leadabo-verify=${token}` },
     {
       kind: "SPF",
       recordType: "TXT",

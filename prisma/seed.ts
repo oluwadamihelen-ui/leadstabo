@@ -52,7 +52,7 @@ async function seedAcademy() {
 async function upsertUser(email: string, name: string, company: string) {
   return db.user.upsert({
     where: { email },
-    create: { email, name, company, timezone: "Africa/Lagos", passwordHash: await bcrypt.hash("leadstabo123", 12) },
+    create: { email, name, company, timezone: "Africa/Lagos", passwordHash: await bcrypt.hash("leadabo123", 12) },
     update: {},
   });
 }
@@ -63,7 +63,11 @@ async function main() {
   console.log("Seeding academy…");
   await seedAcademy();
 
-  const existing = await db.workspace.findUnique({ where: { slug: "leadstabo-demo" } });
+  // "leadstabo-demo" is the slug used before the rename to Leadabo.
+  const oldDemo = await db.workspace.findUnique({ where: { slug: "leadstabo-demo" } });
+  if (oldDemo) await db.workspace.delete({ where: { id: oldDemo.id } });
+  await db.user.deleteMany({ where: { email: { in: ["demo@leadstabo.com", "sarah@leadstabo.com", "tunde@leadstabo.com"] } } });
+  const existing = await db.workspace.findUnique({ where: { slug: "leadabo-demo" } });
   if (existing) {
     console.log("Demo workspace exists — removing and re-creating.");
     await db.workspace.delete({ where: { id: existing.id } });
@@ -71,9 +75,9 @@ async function main() {
   const other = await db.workspace.findUnique({ where: { slug: "acme-isolated" } });
   if (other) await db.workspace.delete({ where: { id: other.id } });
 
-  const owner = await upsertUser("demo@leadstabo.com", "Nicholas Lawrence Onumara", "Leadstabo Demo");
-  const admin = await upsertUser("sarah@leadstabo.com", "Sarah Chen", "Leadstabo Demo");
-  const member = await upsertUser("tunde@leadstabo.com", "Tunde Balogun", "Leadstabo Demo");
+  const owner = await upsertUser("demo@leadabo.com", "Nicholas Lawrence Onumara", "Leadabo Demo");
+  const admin = await upsertUser("sarah@leadabo.com", "Sarah Chen", "Leadabo Demo");
+  const member = await upsertUser("tunde@leadabo.com", "Tunde Balogun", "Leadabo Demo");
   const outsider = await upsertUser("owner@acme.test", "Acme Owner", "Acme");
 
   const growth = await db.plan.findUniqueOrThrow({ where: { key: "growth" } });
@@ -82,7 +86,7 @@ async function main() {
   const ws = await db.workspace.create({
     data: {
       name: "Onumara Growth",
-      slug: "leadstabo-demo",
+      slug: "leadabo-demo",
       createdAt: new Date(Date.now() - 40 * DAY),
       members: {
         create: [
@@ -160,8 +164,8 @@ async function main() {
   });
 
   console.log("\n✔ Seed complete");
-  console.log("  Demo login:  demo@leadstabo.com / leadstabo123 (owner)");
-  console.log("  Also:        sarah@leadstabo.com (admin), tunde@leadstabo.com (member) — same password");
+  console.log("  Demo login:  demo@leadabo.com / leadabo123 (owner)");
+  console.log("  Also:        sarah@leadabo.com (admin), tunde@leadabo.com (member) — same password");
 }
 
 main()

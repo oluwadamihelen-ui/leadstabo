@@ -63,7 +63,7 @@ export default async function IntegrationsPage() {
       title: "Lead database",
       live: p.leads.live,
       provider: p.leads.live ? "Apollo.io" : "Demo dataset",
-      detail: p.leads.live ? "Search is free; revealing a lead uses Apollo enrichment credits plus 1 Leadstabo credit." : "Searches a built-in sample of ~640 prospects.",
+      detail: p.leads.live ? "Search is free; revealing a lead uses Apollo enrichment credits plus 1 Leadabo credit." : "Searches a built-in sample of ~640 prospects.",
       env: ["APOLLO_API_KEY=… (Apollo plan with API access)"],
     },
     {
@@ -97,7 +97,7 @@ export default async function IntegrationsPage() {
       <CardHeader>
         <div>
           <CardTitle>Integrations</CardTitle>
-          <CardDescription>Which services Leadstabo is using right now. Keys are set as server environment variables and never reach the browser.</CardDescription>
+          <CardDescription>Which services Leadabo is using right now. Keys are set as server environment variables and never reach the browser.</CardDescription>
         </div>
       </CardHeader>
       <div className="divide-y border-t">

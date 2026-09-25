@@ -141,7 +141,7 @@ export async function startPlanCheckout(input: { planKey: string; interval: "MON
     const ctx = await assertWorkspace("OWNER");
     const plan = await db.plan.findUnique({ where: { key: z.string().max(40).parse(input.planKey) } });
     if (!plan) throw new UserError("Plan not found");
-    if (plan.contactSales) throw new UserError("Enterprise is custom — contact sales@leadstabo.com");
+    if (plan.contactSales) throw new UserError("Enterprise is custom — contact sales@leadabo.com");
     const inboxes = await db.inbox.count({ where: { workspaceId: ctx.workspaceId } });
     if (inboxes > plan.inboxLimit) throw new UserError(`You have ${inboxes} inboxes; ${plan.name} allows ${plan.inboxLimit}. Remove some first.`);
     const currency = currencySchema.parse(input.currency);

@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { Logo } from "@/components/logo";
+import { BRAND, productOf } from "@/config/brand";
 
 export default function AuthLayout({ children }: { children: React.ReactNode }) {
   return (
@@ -9,7 +10,9 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
           <Logo />
         </Link>
         <div className="mx-auto flex w-full max-w-sm flex-1 flex-col justify-center py-12">{children}</div>
-        <p className="text-xs text-muted-foreground">© {new Date().getFullYear()} Leadstabo. Build your outbound engine.</p>
+        <p className="text-xs text-muted-foreground">
+          © {new Date().getFullYear()} {BRAND.company}. {productOf}
+        </p>
       </div>
       <div className="relative hidden overflow-hidden border-l bg-surface lg:block">
         <div className="grid-bg absolute inset-0 opacity-40 [mask-image:radial-gradient(ellipse_at_center,black,transparent_75%)]" />

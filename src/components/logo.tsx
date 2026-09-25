@@ -14,7 +14,7 @@ export function Logo({ className, plan }: { className?: string; plan?: string })
   return (
     <span className={cn("inline-flex items-center gap-2", className)}>
       <LogoMark />
-      <span className="text-[15px] font-semibold tracking-[0.14em]">LEADSTABO</span>
+      <span className="text-[15px] font-semibold tracking-[0.14em]">LEADABO</span>
       {plan && (
         <span className="rounded border px-1.5 py-px text-[9px] font-semibold uppercase tracking-widest text-muted-foreground">
           {plan}

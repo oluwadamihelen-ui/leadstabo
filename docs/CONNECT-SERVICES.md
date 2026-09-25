@@ -1,14 +1,17 @@
-# How to connect every Leadstabo service (the super-simple guide)
+# How to connect every Leadabo service (the super-simple guide)
 
-Think of Leadstabo like a toy robot. It works out of the box, but it only does the *real*
+Think of Leadabo like a toy robot. It works out of the box, but it only does the *real*
 magic when you plug in its batteries. Each "battery" is a secret key from another company.
-You write each key into a special file called **`.env`**, and Leadstabo reads it when it starts.
+You write each key into a special file called **`.env`**, and Leadabo reads it when it starts.
+
+> Leadabo is a product of **Numi Innovations LTD**. When a payment company asks for your business
+> name or documents (Steps 10a–10c), register it as Numi Innovations LTD.
 
 > **Golden rules**
 > 1. A key is like a house key. Never post it in chat, on GitHub, or in a screenshot.
 > 2. `.env` lives **only** on your computer and your server. It is never uploaded to GitHub, and it is **not inside the zip you download** — so every time you download a fresh copy, copy your `.env` into the new folder.
 > 3. After changing `.env`, stop the app (Ctrl + C) and start it again.
-> 4. **The school database is sacred.** Leadstabo has its *own* database. Never run `npm run db:reset` or `prisma migrate reset` unless you are 100% sure you're pointing at the Leadstabo database.
+> 4. **The school database is sacred.** Leadabo has its *own* database. Never run `npm run db:reset` or `prisma migrate reset` unless you are 100% sure you're pointing at the Leadabo database.
 
 You can always check what's plugged in at **Settings → Integrations**. Green "Live" = battery in. Yellow "Demo" = no battery yet.
 
@@ -16,21 +19,21 @@ You can always check what's plugged in at **Settings → Integrations**. Green "
 
 ## Step 0 — Open the right folder and make the `.env` file
 
-1. Open the Leadstabo folder (the one with `package.json` inside).
+1. Open the Leadabo folder (the one with `package.json` inside).
 2. Is there a file called `.env`? If **no**:
    - If you had one in an older download, copy it into this folder:
      ```
-     copy "C:\path\to\old\leadstabo-folder\.env" .env
+     copy "C:\path\to\old\leadabo-folder\.env" .env
      ```
    - Otherwise copy the example: `copy .env.example .env`
 3. Open `.env` with Notepad. You'll fill it in as you go through this guide.
 
 ---
 
-## Step 1 — The database (Leadstabo's notebook)
+## Step 1 — The database (Leadabo's notebook)
 
-Leadstabo writes everything (users, leads, campaigns) into a Postgres database. You already
-made one on **Neon** called `leadstabo`.
+Leadabo writes everything (users, leads, campaigns) into a Postgres database. You already
+made one on **Neon** called `leadstabo`. (It keeps that old name — that's fine, and renaming it isn't needed.)
 
 1. Go to <https://console.neon.tech> and open your project.
 2. Click **Connect**. Pick the database **`leadstabo`** (not `neondb` — that's the school's!).
@@ -58,7 +61,7 @@ made one on **Neon** called `leadstabo`.
 
 ---
 
-## Step 2 — `APP_SECRET` (Leadstabo's diary lock)
+## Step 2 — `APP_SECRET` (Leadabo's diary lock)
 
 This secret locks up saved mailbox passwords and signs links.
 
@@ -79,9 +82,9 @@ CRON_SECRET="any-long-random-words-you-like"
 
 ---
 
-## Step 3 — Put Leadstabo on the internet (`APP_URL`)
+## Step 3 — Put Leadabo on the internet (`APP_URL`)
 
-On your PC Leadstabo lives at `http://localhost:3000`. That's like a house with no street
+On your PC Leadabo lives at `http://localhost:3000`. That's like a house with no street
 address — Paystack can't send you a "they paid!" letter, and email opens/clicks can't be counted.
 For real use you need a public address.
 
@@ -91,10 +94,10 @@ Easiest way (**Railway** or **Render**, both work the same way):
 2. Make an account at <https://railway.app> (or <https://render.com>), click **New Project → Deploy from GitHub**, pick `leadstabo`.
 3. In the service's **Variables** tab, add every line from your `.env` (DATABASE_URL, APP_SECRET, CRON_SECRET and all the keys below).
 4. Build command: `npm install && npm run build` · Start command: `npm start`.
-5. Railway/Render gives you an address like `https://leadstabo-production.up.railway.app`
-   (you can later add your own like `https://app.leadstabo.com`). Put it in the variables:
+5. Railway/Render gives you an address like `https://leadabo-production.up.railway.app`
+   (you can later add your own like `https://app.leadabo.com`). Put it in the variables:
    ```
-   APP_URL="https://leadstabo-production.up.railway.app"
+   APP_URL="https://leadabo-production.up.railway.app"
    ```
 6. Run the database step once from your PC (Step 1) — the online app uses the same Neon database.
 
@@ -122,31 +125,31 @@ to renew their plan.
 
 ## Step 5 — Connect sending inboxes (the mouths that speak)
 
-Leadstabo sends from *your* real mailboxes. Go to **Settings → Sending Inboxes → Connect inbox**.
-Leadstabo tests both sending (SMTP) and reply-reading (IMAP) before it saves anything.
+Leadabo sends from *your* real mailboxes. Go to **Settings → Sending Inboxes → Connect inbox**.
+Leadabo tests both sending (SMTP) and reply-reading (IMAP) before it saves anything.
 
 ### 5a. Google Workspace / Gmail (recommended)
 1. Go to <https://myaccount.google.com/security> while logged into that mailbox.
 2. Turn on **2-Step Verification** (Google won't give app passwords without it).
-3. Go to <https://myaccount.google.com/apppasswords>. Type a name like "Leadstabo" and click **Create**.
+3. Go to <https://myaccount.google.com/apppasswords>. Type a name like "Leadabo" and click **Create**.
 4. Google shows a 16-letter password like `abcd efgh ijkl mnop`. Copy it (spaces are fine).
 5. In Gmail → ⚙️ → **See all settings → Forwarding and POP/IMAP**: if you see an IMAP switch, turn it **on**.
-6. In Leadstabo pick **Google**, type the email and paste the app password → **Connect**.
+6. In Leadabo pick **Google**, type the email and paste the app password → **Connect**.
    > Company Google Workspace? If "App passwords" is missing, your Google admin must allow
    > 2-Step Verification for users (Admin console → Security → Authentication).
 
 ### 5b. Microsoft 365 / Outlook
 1. A Microsoft 365 admin opens <https://admin.microsoft.com> → **Users → Active users** → click the user → **Mail → Manage email apps** → tick **Authenticated SMTP** and **IMAP** → Save.
-2. In Leadstabo pick **Microsoft 365**, type the email and password.
+2. In Leadabo pick **Microsoft 365**, type the email and password.
    > ⚠️ Honest warning: Microsoft has switched off password logins for IMAP on most accounts
-   > (and is doing the same for SMTP). If Leadstabo says "IMAP: authentication failed", that's
+   > (and is doing the same for SMTP). If Leadabo says "IMAP: authentication failed", that's
    > Microsoft refusing — use a Google Workspace or "Other" mailbox instead.
 
 ### 5c. Any other mailbox (Zoho, Namecheap Private Email, cPanel, etc.)
 1. Find your provider's "SMTP and IMAP settings" help page. Example for Zoho:
    SMTP `smtp.zoho.com` port `465`, IMAP `imap.zoho.com` port `993`.
 2. If the provider offers "app passwords", make one and use it.
-3. In Leadstabo pick **Other (SMTP)** and fill in the hosts, ports, username and password.
+3. In Leadabo pick **Other (SMTP)** and fill in the hosts, ports, username and password.
 
 ✅ After connecting, click **Sync now** on the inbox — no red error means replies will flow in.
 
@@ -158,7 +161,7 @@ Leadstabo tests both sending (SMTP) and reply-reading (IMAP) before it saves any
 ## Step 6 — Sending domains (the name tag that proves it's really you)
 
 Without these, your emails go to spam. Go to **Settings → Sending Domains → Add domain**.
-Leadstabo shows you 5 records. You copy each one into the place where you bought your domain
+Leadabo shows you 5 records. You copy each one into the place where you bought your domain
 (Namecheap, GoDaddy, Cloudflare, Whogohost…) under **DNS** or **Advanced DNS**.
 
 | Record | What it's like | Type |
@@ -172,7 +175,7 @@ Leadstabo shows you 5 records. You copy each one into the place where you bought
 For **DKIM on Google Workspace**: admin.google.com → Apps → Google Workspace → Gmail →
 **Authenticate email** → Generate new record → copy the TXT into your DNS → click **Start authentication**.
 
-Then click **Verify DNS** in Leadstabo. DNS can take from 5 minutes to a few hours to update —
+Then click **Verify DNS** in Leadabo. DNS can take from 5 minutes to a few hours to update —
 if something is red, wait and try again. All green = ready to send.
 
 ---
@@ -185,7 +188,7 @@ Checks if an email address really exists before you send to it.
 2. Go to **API → API Keys** and copy your key.
 3. In `.env`: `ZEROBOUNCE_API_KEY="your-key"`.
 
-Without it Leadstabo still checks spelling, throwaway domains and whether the domain accepts mail.
+Without it Leadabo still checks spelling, throwaway domains and whether the domain accepts mail.
 
 ---
 
@@ -196,7 +199,7 @@ Without it Leadstabo still checks spelling, throwaway domains and whether the do
    Tick the "master key" / all-endpoints option so search and enrichment both work.
 3. In `.env`: `APOLLO_API_KEY="your-key"`.
 
-Searching is free; revealing a person's email uses Apollo credits plus 1 Leadstabo credit.
+Searching is free; revealing a person's email uses Apollo credits plus 1 Leadabo credit.
 
 ---
 
@@ -215,8 +218,8 @@ Now "Write with AI", reply suggestions and reply sorting use Claude instead of t
 Your customers choose **Naira or Dollars** on the pricing page and in **Settings → Billing & Plans**,
 then choose which payment company to pay with. You can connect one, two or all three.
 
-**How it works (like a shop):** the customer picks a plan → Leadstabo writes a receipt with the
-price → the customer pays on Paystack/Flutterwave/Korapay's own safe page → Leadstabo phones the
+**How it works (like a shop):** the customer picks a plan → Leadabo writes a receipt with the
+price → the customer pays on Paystack/Flutterwave/Korapay's own safe page → Leadabo phones the
 payment company to double-check "did they really pay the right amount?" → only then the plan or
 credits are switched on. Plans are prepaid for 1 or 12 months and don't auto-charge — customers
 get a reminder 5 days before, and a 7-day grace period after.
@@ -252,7 +255,7 @@ get a reminder 5 days before, and a 7-day grace period after.
 1. Sign up at <https://merchant.korapay.com>.
 2. **Settings → API Configuration**: copy the **Secret Key** (`sk_test_...`).
 3. Set the **Webhook / Notification URL** to `https://YOUR-APP-URL/api/webhooks/korapay`
-   (Leadstabo also sends this address with every payment).
+   (Leadabo also sends this address with every payment).
 4. In `.env`: `KORAPAY_SECRET_KEY="sk_test_..."`.
 5. Korapay is offered for Naira by default. If your account can take USD, add `KORAPAY_CURRENCIES="NGN,USD"`.
 
@@ -292,7 +295,7 @@ npm run db:seed          (only needed the first time, or when plan prices change
 npm run dev
 ```
 
-`db:seed` saves plans and courses and **rebuilds the demo workspace** (`demo@leadstabo.com`) — don't
+`db:seed` saves plans and courses and **rebuilds the demo workspace** (`demo@leadabo.com`) — don't
 keep real work inside the demo account.
 
 If anything goes red, copy the exact error message and send it — that's the fastest way to fix it.

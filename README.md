@@ -1,6 +1,8 @@
-# Leadstabo — Build your outbound engine.
+# Leadabo — Build your outbound engine.
 
-Leadstabo is an all-in-one outbound acquisition platform: define your ICP, find and verify leads, set up sending infrastructure, write personalized sequences, launch campaigns, handle replies and learn the whole system in the built-in Academy.
+*Leadabo is a product of **Numi Innovations LTD**.*
+
+Leadabo is an all-in-one outbound acquisition platform: define your ICP, find and verify leads, set up sending infrastructure, write personalized sequences, launch campaigns, handle replies and learn the whole system in the built-in Academy.
 
 ```
 ICP → Find Leads → Verify → Create Offer → Personalize → Write Email → Build Sequence → Send → Track → Follow Up → Convert
@@ -28,7 +30,7 @@ npm run dev                     # http://localhost:3000
 npm run worker                  # in a second terminal: sends campaigns, ramps warmup
 ```
 
-**Demo login:** `demo@leadstabo.com` / `leadstabo123` (owner). `sarah@leadstabo.com` (admin) and `tunde@leadstabo.com` (member) use the same password. A second workspace (`owner@acme.test`) exists to demonstrate tenant isolation.
+**Demo login:** `demo@leadabo.com` / `leadabo123` (owner). `sarah@leadabo.com` (admin) and `tunde@leadabo.com` (member) use the same password. A second workspace (`owner@acme.test`) exists to demonstrate tenant isolation.
 
 New sign-ups get an empty Starter workspace with 500 credits. They can use **Load sample data** on the dashboard or onboarding screen to explore a populated workspace.
 
@@ -49,7 +51,7 @@ New sign-ups get an empty Starter workspace with 500 credits. They can use **Loa
   - *ICPs & Offers*: saved ICPs and offers feed the AI writer.
 - **Settings**: profile, appearance (dark/light/system), security (password, TOTP 2FA, sessions), team (invites, roles, permission matrix), billing & plans (monthly/annual, comparison, usage, credit packs, credit history), outreach defaults, API keys.
   - *Infrastructure*: sending domains (6-step DNS setup with SPF/DKIM/DMARC/MX checks), inboxes (Google, Microsoft, SMTP; encrypted credentials), warmup (start/pause/configure, ramp progress).
-- **Academy**: *Leadstabo Outbound Acquisition* (Days 1–7, 21 lessons) plus two shorter courses. Includes a presentation-style lesson player, autosaving notes, resources, progress, streaks and certificates.
+- **Academy**: *Leadabo Outbound Acquisition* (Days 1–7, 21 lessons) plus two shorter courses. Includes a presentation-style lesson player, autosaving notes, resources, progress, streaks and certificates.
 - **Also**: analytics (campaign, inbox, domain, lead), ⌘K global search, notification center, help center, public landing page with pricing.
 
 ## Architecture
@@ -137,3 +139,7 @@ curl http://localhost:3000/api/v1/lists -H "Authorization: Bearer lsk_live_…"
 | `npm run typecheck` / `lint` | TypeScript / ESLint |
 | `npm run db:migrate` / `db:seed` / `db:reset` | Prisma |
 | `npm run worker` | background sender & warmup |
+
+---
+
+© Numi Innovations LTD. Leadabo is a product of Numi Innovations LTD.

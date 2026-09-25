@@ -112,7 +112,7 @@ export function CommandPalette({ open, onOpenChange }: { open: boolean; onOpenCh
         <D.Overlay className="fixed inset-0 z-50 flex justify-center bg-black/60 px-4 pt-[12vh] backdrop-blur-[2px]">
         <D.Content className="h-fit w-full max-w-xl overflow-hidden rounded-xl border bg-popover shadow-2xl animate-fade-in">
           <D.Title className="sr-only">Search</D.Title>
-          <D.Description className="sr-only">Search across Leadstabo</D.Description>
+          <D.Description className="sr-only">Search across Leadabo</D.Description>
           <Command shouldFilter={false} className="[&_[cmdk-group-heading]]:label-caps [&_[cmdk-group-heading]]:px-3 [&_[cmdk-group-heading]]:pb-1 [&_[cmdk-group-heading]]:pt-3">
             <div className="flex items-center gap-2 border-b px-3">
               {loading ? <Loader2 className="size-4 animate-spin text-muted-foreground" /> : <Search className="size-4 text-muted-foreground" />}

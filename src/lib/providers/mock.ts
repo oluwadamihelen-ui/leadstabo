@@ -25,7 +25,7 @@ export const mockEmail: EmailProvider = {
   async send(_creds, msg) {
     // ~2% synthetic bounce rate, deterministic per recipient.
     const bounced = hashInt(msg.to.email) % 50 === 0;
-    return { messageId: `<${randomUUID()}@mail.leadstabo.dev>`, accepted: !bounced, bounced };
+    return { messageId: `<${randomUUID()}@mail.leadabo.dev>`, accepted: !bounced, bounced };
   },
 };
 

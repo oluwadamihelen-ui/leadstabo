@@ -39,12 +39,12 @@ export async function startCheckout(input: {
     if (!plan || plan.contactSales) throw new UserError("Plan not available for online checkout");
     const interval = input.interval ?? "MONTHLY";
     amountMinor = planChargeAmount(plan, input.currency, interval);
-    description = `Leadstabo ${plan.name} — ${interval === "ANNUAL" ? "12 months" : "1 month"}`;
+    description = `Leadabo ${plan.name} — ${interval === "ANNUAL" ? "12 months" : "1 month"}`;
   } else {
     const pack = CREDIT_PACKS.find((p) => p.credits === input.credits);
     if (!pack) throw new UserError("Unknown credit pack");
     amountMinor = packPrice(pack, input.currency);
-    description = `${pack.credits.toLocaleString()} Leadstabo credits`;
+    description = `${pack.credits.toLocaleString()} Leadabo credits`;
   }
   if (amountMinor <= 0) throw new UserError(`No ${input.currency} price is set for this item`);
 

@@ -23,6 +23,7 @@ import { getSession } from "@/lib/auth/session";
 import { Logo } from "@/components/logo";
 import { Button } from "@/components/ui/button";
 import { Pricing } from "./pricing";
+import { BRAND, productOf } from "@/config/brand";
 
 const STEPS = [
   { icon: Crosshair, title: "Find your ICP", body: "Define who you help — industry, titles, pains and objections." },
@@ -36,10 +37,10 @@ const STEPS = [
 ];
 
 const FAQ = [
-  ["Do I need my own email accounts?", "Yes — connect Google Workspace, Microsoft 365 or any SMTP inbox. Leadstabo handles DNS checks, warmup, limits and rotation so they stay healthy."],
+  ["Do I need my own email accounts?", "Yes — connect Google Workspace, Microsoft 365 or any SMTP inbox. Leadabo handles DNS checks, warmup, limits and rotation so they stay healthy."],
   ["Where do the leads come from?", "Our lead database has 400M+ B2B contacts. Search it, reveal only the leads you want (1 credit each) and verify before sending."],
-  ["Will my emails land in spam?", "Leadstabo enforces verification, SPF/DKIM/DMARC checks, warmup and daily limits, and auto-pauses inboxes when bounces spike."],
-  ["Is there a learning curve?", "Every plan includes Leadstabo Academy — a 7-day program that walks you from zero to a live campaign."],
+  ["Will my emails land in spam?", "Leadabo enforces verification, SPF/DKIM/DMARC checks, warmup and daily limits, and auto-pauses inboxes when bounces spike."],
+  ["Is there a learning curve?", "Every plan includes Leadabo Academy — a 7-day program that walks you from zero to a live campaign."],
   ["Can I cancel anytime?", "Yes. Plans are month-to-month, or save 20% billed annually."],
 ];
 
@@ -119,7 +120,7 @@ export default async function Landing() {
                 <span className="size-2.5 rounded-full bg-white/10" />
                 <span className="size-2.5 rounded-full bg-white/10" />
                 <span className="size-2.5 rounded-full bg-white/10" />
-                <span className="ml-3 text-xs text-muted-foreground">app.leadstabo.com/dashboard</span>
+                <span className="ml-3 text-xs text-muted-foreground">app.leadabo.com/dashboard</span>
               </div>
               <div className="grid gap-4 p-5 sm:grid-cols-4">
                 {[
@@ -164,7 +165,7 @@ export default async function Landing() {
       {/* How it works */}
       <section id="how" className="border-t border-white/5 py-24">
         <div className="mx-auto max-w-7xl px-4 sm:px-6">
-          <p className="label-caps text-primary">How Leadstabo works</p>
+          <p className="label-caps text-primary">How Leadabo works</p>
           <h2 className="mt-3 max-w-2xl text-3xl font-semibold tracking-tight sm:text-4xl">One system. From ideal customer to booked meeting.</h2>
           <div className="mt-12 grid gap-px overflow-hidden rounded-2xl border bg-border sm:grid-cols-2 lg:grid-cols-4">
             {STEPS.map((s, i) => (
@@ -243,7 +244,7 @@ export default async function Landing() {
           <Feature
             eyebrow="Infrastructure"
             title="Deliverability is the product."
-            body="Add secondary domains, publish SPF, DKIM and DMARC with guided checks, connect inboxes, warm them automatically and let Leadstabo enforce limits and pause anything that starts to bounce."
+            body="Add secondary domains, publish SPF, DKIM and DMARC with guided checks, connect inboxes, warm them automatically and let Leadabo enforce limits and pause anything that starts to bounce."
             points={["Domain health & reputation", "Automated warmup ramp", "Encrypted credentials, never exposed"]}
             icon={ShieldCheck}
             visual={
@@ -301,10 +302,10 @@ export default async function Landing() {
             <div className="relative grid gap-10 lg:grid-cols-2">
               <div className="pl-6">
                 <p className="label-caps flex items-center gap-2 text-primary">
-                  <BookOpen className="size-3.5" /> Leadstabo Academy
+                  <BookOpen className="size-3.5" /> Leadabo Academy
                 </p>
                 <h2 className="mt-3 text-3xl font-semibold tracking-tight text-white sm:text-4xl">Learn the system. Then run it.</h2>
-                <p className="mt-4 text-white/60">A 7-day live program built into the product. Each day ends with a task you complete inside Leadstabo — by Day 7 your first campaign is live.</p>
+                <p className="mt-4 text-white/60">A 7-day live program built into the product. Each day ends with a task you complete inside Leadabo — by Day 7 your first campaign is live.</p>
                 <Button asChild className="mt-8">
                   <Link href={cta.href}>
                     Start Day 1 <ArrowRight />
@@ -369,7 +370,10 @@ export default async function Landing() {
       <footer className="border-t border-white/5 py-10">
         <div className="mx-auto flex max-w-7xl flex-col items-center justify-between gap-4 px-4 text-xs text-muted-foreground sm:flex-row sm:px-6">
           <Logo />
-          <p>© {new Date().getFullYear()} Leadstabo. Build your outbound engine.</p>
+          <div className="text-center sm:text-left">
+            <p>{productOf}</p>
+            <p className="mt-1 text-muted-foreground/70">© {new Date().getFullYear()} {BRAND.company}. All rights reserved.</p>
+          </div>
           <div className="flex gap-4">
             <a href="#pricing" className="hover:text-foreground">
               Pricing
@@ -377,7 +381,7 @@ export default async function Landing() {
             <Link href="/login" className="hover:text-foreground">
               Sign in
             </Link>
-            <a href="mailto:hello@leadstabo.com" className="hover:text-foreground">
+            <a href="mailto:hello@leadabo.com" className="hover:text-foreground">
               Contact
             </a>
           </div>

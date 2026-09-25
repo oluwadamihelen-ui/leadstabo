@@ -35,7 +35,7 @@ export function AssistantButton() {
         <Sparkles className="size-5" />
       </button>
       <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent title="Leadstabo AI" description="Draft a personalized cold email in seconds. Uses 2 credits per generation." size="lg">
+        <DialogContent title="Leadabo AI" description="Draft a personalized cold email in seconds. Uses 2 credits per generation." size="lg">
           <div className="grid gap-3 sm:grid-cols-2">
             <Field label="Prospect first name">
               <Input value={form.firstName} onChange={(e) => setForm({ ...form, firstName: e.target.value })} placeholder="Amara" />

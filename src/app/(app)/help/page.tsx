@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { BRAND, productOf } from "@/config/brand";
 import Link from "next/link";
 import { BookOpen, Globe, KeyRound, LifeBuoy, Mail, MailCheck, Rocket, Search } from "lucide-react";
 import { Card } from "@/components/ui/card";
@@ -60,17 +61,18 @@ export default function HelpPage() {
             <p className="mt-3 font-semibold">Contact support</p>
             <p className="mt-1 text-[13px] text-muted-foreground">Growth plans and above get priority chat. We reply within one business day.</p>
             <Button asChild className="mt-4 w-full">
-              <a href="mailto:support@leadstabo.com?subject=Leadstabo%20support%20request">Email support</a>
+              <a href="mailto:support@leadabo.com?subject=Leadabo%20support%20request">Email support</a>
             </Button>
           </Card>
           <Card className="p-5">
             <BookOpen className="size-5 text-info" />
-            <p className="mt-3 font-semibold">Leadstabo Academy</p>
+            <p className="mt-3 font-semibold">Leadabo Academy</p>
             <p className="mt-1 text-[13px] text-muted-foreground">The 7-day program that walks you through the entire outbound system.</p>
             <Button asChild variant="secondary" className="mt-4 w-full">
               <Link href="/academy">Open the Academy</Link>
             </Button>
           </Card>
+          <p className="px-1 text-xs leading-5 text-muted-foreground">{productOf} Billing, invoices and data requests are handled by {BRAND.company}.</p>
         </div>
       </div>
     </>

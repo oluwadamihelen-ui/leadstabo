@@ -70,7 +70,7 @@ export const smtpEmail: EmailProvider = {
   },
   async send(creds, msg) {
     if (!creds) return { messageId: "", accepted: false, error: "Inbox has no stored credentials — reconnect it" };
-    const domain = creds.email.split("@")[1] ?? "leadstabo.local";
+    const domain = creds.email.split("@")[1] ?? "leadabo.local";
     const messageId = `<${randomUUID()}@${domain}>`;
     try {
       const info = await transport(creds).sendMail({

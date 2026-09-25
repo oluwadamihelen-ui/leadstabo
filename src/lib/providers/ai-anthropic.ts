@@ -6,7 +6,7 @@ import { mockAi } from "./ai-mock";
 // Claude-backed copywriter. The key is read server-side only (ANTHROPIC_API_KEY).
 const MODEL = "claude-opus-5";
 
-const SYSTEM = `You are an expert B2B cold-email copywriter working inside Leadstabo, an outbound sales platform.
+const SYSTEM = `You are an expert B2B cold-email copywriter working inside Leadabo, an outbound sales platform.
 Write concise, specific, human emails (under 120 words), no fluff, no buzzwords, one clear call to action.
 Keep personalization variables like {{first_name}} intact when present in the input.
 Always answer with a single JSON object and nothing else.`;

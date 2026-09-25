@@ -26,7 +26,7 @@ export function AppearanceForm({ theme }: { theme: string }) {
       <CardHeader>
         <div>
           <CardTitle>Theme</CardTitle>
-          <CardDescription>Leadstabo is designed dark-first. Your choice is saved to your account.</CardDescription>
+          <CardDescription>Leadabo is designed dark-first. Your choice is saved to your account.</CardDescription>
         </div>
       </CardHeader>
       <CardContent className="grid gap-4 sm:grid-cols-3">

@@ -276,7 +276,7 @@ export async function seedDemoWorkspace(db: PrismaClient, workspaceId: string, o
           sentToday: 0,
           bounceRate: d.state === "ISSUE" ? 4.8 : Math.round(r() * 15) / 10,
           healthScore: d.state === "ACTIVE" ? 90 + Math.floor(r() * 9) : d.state === "ISSUE" ? 52 : 70,
-          signature: `${name}\nGrowth Partner · Leadstabo`,
+          signature: `${name}\nGrowth Partner · Leadabo`,
           createdAt: daysAgo(d.age),
           warmup: {
             create: {
@@ -405,7 +405,7 @@ export async function seedDemoWorkspace(db: PrismaClient, workspaceId: string, o
             subject: render(step.subject),
             body: render(step.body),
             status: isBounce ? "BOUNCED" : "DELIVERED",
-            messageId: `<demo-${campaign.id}-${li}-${si}@mail.leadstabo.dev>`,
+            messageId: `<demo-${campaign.id}-${li}-${si}@mail.leadabo.dev>`,
             sentAt,
             createdAt: sentAt,
           },

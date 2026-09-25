@@ -40,5 +40,5 @@ export function verifyTotp(secret: string, token: string) {
 }
 
 export function totpUri(secret: string, account: string) {
-  return `otpauth://totp/Leadstabo:${encodeURIComponent(account)}?secret=${secret}&issuer=Leadstabo`;
+  return `otpauth://totp/Leadabo:${encodeURIComponent(account)}?secret=${secret}&issuer=Leadabo`;
 }

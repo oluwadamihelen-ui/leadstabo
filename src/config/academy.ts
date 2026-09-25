@@ -32,10 +32,10 @@ export interface CourseSeed {
 
 const outbound: CourseSeed = {
   slug: "outbound-acquisition",
-  title: "Leadstabo Outbound Acquisition",
+  title: "Leadabo Outbound Acquisition",
   subtitle: "The 7-day system to find clients with cold email",
   description:
-    "A live, 7-day program that takes you from zero to a running outbound engine: mindset, infrastructure, ICP, offer, leads, copy and launch. Every day ends with a task you complete inside Leadstabo.",
+    "A live, 7-day program that takes you from zero to a running outbound engine: mindset, infrastructure, ICP, offer, leads, copy and launch. Every day ends with a task you complete inside Leadabo.",
   kind: "CHALLENGE",
   badge: "Live cohort",
   accent: "orange",
@@ -63,7 +63,7 @@ When outbound "doesn't work", it is almost never the copy. It is usually one of 
 > Outbound is a system. Fix the system and the results follow.
 
 ## What you'll build this week
-By Day 7 you will have a warmed sending infrastructure, a defined ICP, a verified lead list, a 4-step sequence and a live campaign inside Leadstabo.`,
+By Day 7 you will have a warmed sending infrastructure, a defined ICP, a verified lead list, a 4-step sequence and a live campaign inside Leadabo.`,
         },
         {
           slug: "the-outbound-operating-system",
@@ -72,7 +72,7 @@ By Day 7 you will have a warmed sending infrastructure, a defined ICP, a verifie
           summary: "The ten stages every successful outbound program moves through, from ICP to conversion.",
           keyPoints: ["ICP → Leads → Verify → Offer → Personalize → Write → Sequence → Send → Track → Convert", "Each stage has one metric that matters", "Bottlenecks move — measure weekly"],
           content: `## The pipeline
-Leadstabo is built around one flow:
+Leadabo is built around one flow:
 
 1. **ICP** — who exactly you help
 2. **Find leads** — build a list that matches the ICP
@@ -104,10 +104,10 @@ Each inbox should send **30–40 cold emails per day** at most. Plan backwards:
 - 2–3 inboxes per domain → 6–8 domains
 
 ## Authentication
-Every domain needs **SPF, DKIM and DMARC**. Leadstabo checks all three for you under *Settings → Infrastructure → Sending Domains*.
+Every domain needs **SPF, DKIM and DMARC**. Leadabo checks all three for you under *Settings → Infrastructure → Sending Domains*.
 
 ## Task
-Add your first sending domain in Leadstabo and publish the DNS records it shows you.`,
+Add your first sending domain in Leadabo and publish the DNS records it shows you.`,
           resources: [{ label: "Add a sending domain", href: "/settings/infrastructure/domains" }],
         },
       ],
@@ -180,7 +180,7 @@ The cold email doesn't need to sell the package. It needs to sell **the next ste
 4. **Goals** — what success looks like for them this year
 5. **Objections** — why they'd say no
 
-## Save it in Leadstabo
+## Save it in Leadabo
 Go to *Outreach → ICPs & Offers* and create your ICP. The AI writer uses it to generate on-target sequences automatically.`,
           resources: [{ label: "Create an ICP", href: "/outreach/playbook" }],
         },
@@ -221,14 +221,14 @@ Test subject line **or** opener **or** CTA — never all three at once, or you w
           slug: "domains-and-dns",
           title: "Domains, SPF, DKIM & DMARC",
           durationMin: 17,
-          summary: "What each DNS record does and how to verify them in Leadstabo.",
+          summary: "What each DNS record does and how to verify them in Leadabo.",
           keyPoints: ["SPF: who may send for your domain", "DKIM: cryptographic signature", "DMARC: policy + reporting"],
           content: `## The three records
 - **SPF** lists the servers allowed to send for your domain.
 - **DKIM** signs every email so receivers can confirm it wasn't altered.
 - **DMARC** tells receivers what to do when SPF/DKIM fail, and sends you reports.
 
-## Verify in Leadstabo
+## Verify in Leadabo
 Add the records shown on the domain's setup page, then click **Verify DNS**. Every record turns green when it's published correctly.`,
           resources: [{ label: "Sending domains", href: "/settings/infrastructure/domains" }],
         },
@@ -239,7 +239,7 @@ Add the records shown on the domain's setup page, then click **Verify DNS**. Eve
           summary: "Connecting Google Workspace, Microsoft 365 or SMTP inboxes and setting safe limits.",
           keyPoints: ["Connect via OAuth where possible", "Start at 20/day, ramp to 40", "Keep bounce rate under 2%"],
           content: `## Connecting inboxes
-Leadstabo supports Google Workspace, Microsoft 365 and any SMTP provider. Credentials are encrypted at rest and never exposed to the browser.
+Leadabo supports Google Workspace, Microsoft 365 and any SMTP provider. Credentials are encrypted at rest and never exposed to the browser.
 
 ## Safe limits
 Start new inboxes at **20/day** and ramp to **30–40/day** after warmup. If bounce rate climbs above **2%**, pause and re-verify your list.`,
@@ -303,7 +303,7 @@ Create one list per segment — e.g. *US SaaS Founders*, *UK Marketing Agencies*
 - **Invalid** — doesn't exist. Never send.
 - **Unknown** — server didn't respond. Re-verify later.
 
-Leadstabo only lets verified addresses into campaigns, which keeps your bounce rate low.`,
+Leadabo only lets verified addresses into campaigns, which keeps your bounce rate low.`,
           resources: [{ label: "Verify leads", href: "/leadgen/verify" }],
         },
       ],
@@ -402,7 +402,7 @@ Open rates are directional only — privacy features inflate them. **Optimize fo
           summary: "Reply within an hour, use AI-suggested responses and move every positive reply to a booked call.",
           keyPoints: ["Speed wins — reply within 60 minutes", "Classify and label every reply", "Always propose specific times"],
           content: `## Speed to lead
-Replies go cold fast. Leadstabo classifies every reply (interested, question, meeting requested, not interested, out of office) and drafts a suggested response.
+Replies go cold fast. Leadabo classifies every reply (interested, question, meeting requested, not interested, out of office) and drafts a suggested response.
 
 ## Always propose times
 Don't ask "when works?". Say "Does Tuesday 2pm or Thursday 11am work?" — or send your calendar link.
@@ -454,7 +454,7 @@ Engagement dominates. That's why warmup and relevant targeting matter more than 
 A **hard bounce** means the address doesn't exist — remove it. A **soft bounce** is temporary (full mailbox, server busy).
 
 ## Spikes
-Leadstabo alerts you when bounce rate spikes. Pause the campaign, re-verify the list, and resume once it's clean.`,
+Leadabo alerts you when bounce rate spikes. Pause the campaign, re-verify the list, and resume once it's clean.`,
         },
       ],
     },
