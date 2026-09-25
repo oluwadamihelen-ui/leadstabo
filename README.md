@@ -21,7 +21,7 @@ ICP → Find Leads → Verify → Create Offer → Personalize → Write Email �
 
 ```bash
 cp .env.example .env            # set DATABASE_URL and a 32+ char APP_SECRET
-npm install
+npm install                     # also runs `prisma generate`
 npx prisma migrate deploy       # or: npm run db:migrate
 npm run db:seed                 # plans, academy, demo workspace
 npm run dev                     # http://localhost:3000
