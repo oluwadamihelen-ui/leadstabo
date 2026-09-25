@@ -15,7 +15,7 @@ export const metadata: Metadata = { title: "Billing & Plans" };
 
 const USAGE_CATS = ["LEAD_DISCOVERY", "EMAIL_VERIFICATION", "AI_GENERATION", "EMAIL_SENDING"] as const;
 
-export default async function BillingPage({ searchParams }: { searchParams: Promise<{ cat?: string }> }) {
+export default async function BillingPage({ searchParams }: { searchParams: Promise<{ cat?: string; checkout?: string }> }) {
   const ctx = await requireWorkspace();
   const sp = await searchParams;
   const [plans, sub, credits, txns, sums] = await Promise.all([
@@ -39,6 +39,12 @@ export default async function BillingPage({ searchParams }: { searchParams: Prom
 
   return (
     <div className="space-y-6">
+      {sp.checkout === "success" && (
+        <p className="rounded-lg border border-success/30 bg-success/10 px-4 py-3 text-[13px] text-success">
+          Payment received. Your plan or credits update as soon as Stripe confirms the payment (usually a few seconds) — refresh if you don’t see it yet.
+        </p>
+      )}
+      {sp.checkout === "cancelled" && <p className="rounded-lg border bg-muted/40 px-4 py-3 text-[13px] text-muted-foreground">Checkout cancelled — you weren’t charged.</p>}
       <div className="grid gap-6 xl:grid-cols-2">
         <Card className="relative overflow-hidden">
           <div className="absolute -right-16 -top-16 size-48 rounded-full bg-primary/10 blur-3xl" />

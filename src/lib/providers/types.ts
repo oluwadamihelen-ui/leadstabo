@@ -10,6 +10,7 @@ export interface OutboundMessage {
   html?: string;
   headers?: Record<string, string>;
   inReplyTo?: string;
+  references?: string[];
 }
 
 export interface SendResult {
@@ -24,13 +25,15 @@ export interface InboxCredentials {
   email: string;
   smtpHost?: string;
   smtpPort?: number;
+  imapHost?: string;
+  imapPort?: number;
   username?: string;
   password?: string;
-  oauthToken?: string;
 }
 
 export interface EmailProvider {
   name: string;
+  live: boolean;
   testConnection(creds: InboxCredentials): Promise<{ ok: boolean; error?: string }>;
   send(creds: InboxCredentials | null, msg: OutboundMessage): Promise<SendResult>;
 }
@@ -44,6 +47,7 @@ export interface VerificationResult {
 
 export interface VerificationProvider {
   name: string;
+  live: boolean;
   verify(email: string): Promise<VerificationResult>;
 }
 
@@ -92,6 +96,7 @@ export interface ProspectRecord {
 
 export interface LeadDatabaseProvider {
   name: string;
+  live: boolean;
   totalContacts: number;
   search(filters: LeadSearchFilters, page: number, pageSize: number): Promise<{ total: number; results: ProspectRecord[] }>;
   getByIds(ids: string[]): Promise<ProspectRecord[]>;
@@ -106,13 +111,25 @@ export interface DnsRecordCheck {
 
 export interface DnsProvider {
   name: string;
+  live: boolean;
   check(domain: string, records: DnsRecordCheck[]): Promise<Record<string, "VALID" | "INVALID" | "PENDING">>;
 }
 
+/** Either the change applies now (mock), or the user is sent to a hosted checkout (Stripe). */
+export type PaymentStart = { mode: "immediate"; providerRef: string } | { mode: "redirect"; url: string };
+
 export interface PaymentsProvider {
   name: string;
-  changePlan(input: { workspaceId: string; planKey: string; interval: "MONTHLY" | "ANNUAL" }): Promise<{ ok: boolean; providerRef: string }>;
-  chargeCredits(input: { workspaceId: string; credits: number; amountMinor: number }): Promise<{ ok: boolean; providerRef: string }>;
+  live: boolean;
+  startPlanChange(input: {
+    workspaceId: string;
+    customerEmail: string;
+    plan: { key: string; name: string; monthlyPrice: number; annualPrice: number; currency: string };
+    interval: "MONTHLY" | "ANNUAL";
+    currentSubscriptionRef?: string | null;
+  }): Promise<PaymentStart>;
+  startCreditPurchase(input: { workspaceId: string; customerEmail: string; credits: number; amountMinor: number }): Promise<PaymentStart>;
+  cancel(subscriptionRef: string | null): Promise<void>;
 }
 
 export type AiTask =
@@ -148,5 +165,6 @@ export interface AiResult {
 
 export interface AiProvider {
   name: string;
+  live: boolean;
   run(task: AiTask, ctx: AiContext): Promise<AiResult>;
 }

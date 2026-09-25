@@ -16,6 +16,7 @@ function hashInt(s: string) {
 
 export const mockEmail: EmailProvider = {
   name: "mock",
+  live: false,
   async testConnection(creds) {
     if (creds.provider === "SMTP" && (!creds.smtpHost || !creds.password)) {
       return { ok: false, error: "SMTP host and password are required" };
@@ -31,6 +32,7 @@ export const mockEmail: EmailProvider = {
 
 export const mockVerification: VerificationProvider = {
   name: "mock",
+  live: false,
   async verify(email) {
     const e = email.toLowerCase();
     let status: VerificationResult["status"];
@@ -56,6 +58,7 @@ export const mockVerification: VerificationProvider = {
 
 export const mockDns: DnsProvider = {
   name: "mock",
+  live: false,
   async check(domain, records) {
     // Domains containing "broken" fail DMARC so the UI can show the issue state.
     const out: Record<string, "VALID" | "INVALID" | "PENDING"> = {};
@@ -66,12 +69,14 @@ export const mockDns: DnsProvider = {
 
 export const mockPayments: PaymentsProvider = {
   name: "mock",
-  async changePlan() {
-    return { ok: true, providerRef: `sub_mock_${randomUUID().slice(0, 8)}` };
+  live: false,
+  async startPlanChange() {
+    return { mode: "immediate", providerRef: `sub_mock_${randomUUID().slice(0, 8)}` };
   },
-  async chargeCredits() {
-    return { ok: true, providerRef: `pi_mock_${randomUUID().slice(0, 8)}` };
+  async startCreditPurchase() {
+    return { mode: "immediate", providerRef: `pi_mock_${randomUUID().slice(0, 8)}` };
   },
+  async cancel() {},
 };
 
 export { mockAi };

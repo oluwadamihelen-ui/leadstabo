@@ -99,6 +99,7 @@ function run(task: AiTask, ctx: AiContext): AiResult {
 
 export const mockAi: AiProvider = {
   name: "mock",
+  live: false,
   async run(task, ctx) {
     return run(task, ctx);
   },

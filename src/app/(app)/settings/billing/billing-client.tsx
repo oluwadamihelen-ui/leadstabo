@@ -46,8 +46,9 @@ export function PlanPicker({ plans, currentKey, currentInterval, canChange }: { 
             if (p.contactSales) return void (window.location.href = "mailto:sales@leadstabo.com?subject=Leadstabo%20Enterprise");
             if (!canChange) return;
             setBusy(p.key);
-            await exec(() => changePlan(p.key, interval));
-            setBusy(null);
+            const r = await exec(() => changePlan(p.key, interval));
+            if (r && typeof r === "object" && "redirect" in r && r.redirect) window.location.href = r.redirect as string;
+            else setBusy(null);
           }}
         />
         <div className="mt-8">
@@ -103,13 +104,14 @@ export function BuyCredits({ packs }: { packs: { credits: number; priceMinor: nu
           <Confirm
             key={p.credits}
             title={`Buy ${formatNumber(p.credits)} credits?`}
-            description={`You’ll be charged ${formatMoney(p.priceMinor)} to the card on file. Credits never expire.`}
+            description={`${formatMoney(p.priceMinor)} — you’ll complete payment on a secure checkout page. Credits never expire.`}
             confirmLabel="Buy credits"
             destructive={false}
             onConfirm={async () => {
               setBusy(p.credits);
-              await exec(() => buyCredits(p.credits));
-              setBusy(null);
+              const r = await exec(() => buyCredits(p.credits));
+              if (r && typeof r === "object" && "redirect" in r && r.redirect) window.location.href = r.redirect as string;
+              else setBusy(null);
             }}
             trigger={
               <Button variant="secondary" className="h-auto flex-col gap-0 py-2" loading={busy === p.credits}>

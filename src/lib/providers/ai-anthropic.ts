@@ -28,6 +28,7 @@ export function createAnthropicAi(apiKey: string): AiProvider {
   const client = new Anthropic({ apiKey });
   return {
     name: "anthropic",
+    live: true,
     async run(task, ctx) {
       try {
         const params = {

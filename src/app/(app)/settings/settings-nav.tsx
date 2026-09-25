@@ -1,7 +1,7 @@
 "use client";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { CreditCard, Globe, Inbox, KeyRound, Flame, Palette, Send, Shield, User, Users } from "lucide-react";
+import { CreditCard, Globe, Inbox, KeyRound, Flame, Palette, Plug, Send, Shield, User, Users } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const GROUPS = [
@@ -20,6 +20,7 @@ const GROUPS = [
       { href: "/settings/billing", label: "Billing & Plans", icon: CreditCard },
       { href: "/settings/outreach", label: "Outreach", icon: Send },
       { href: "/settings/api-keys", label: "API Keys", icon: KeyRound },
+      { href: "/settings/integrations", label: "Integrations", icon: Plug },
     ],
   },
   {

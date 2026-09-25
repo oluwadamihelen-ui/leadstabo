@@ -31,6 +31,7 @@ function matches(p: ProspectRecord, f: LeadSearchFilters) {
 
 export const mockLeadDatabase: LeadDatabaseProvider = {
   name: "mock",
+  live: false,
   totalContacts: 412_000_000,
   async search(filters, page, pageSize) {
     const exclude = new Set(filters.excludeIds ?? []);

@@ -49,14 +49,14 @@ export async function spendCredits(
   return bal.balance;
 }
 
-export async function addCredits(workspaceId: string, amount: number, category: CreditCategory, description: string) {
+export async function addCredits(workspaceId: string, amount: number, category: CreditCategory, description: string, externalRef?: string) {
   const bal = await db.creditBalance.upsert({
     where: { workspaceId },
     create: { workspaceId, balance: amount, lifetimeCredits: amount },
     update: { balance: { increment: amount }, lifetimeCredits: { increment: amount } },
   });
   await db.creditTransaction.create({
-    data: { workspaceId, amount, category, description, balanceAfter: bal.balance },
+    data: { workspaceId, amount, category, description, balanceAfter: bal.balance, externalRef },
   });
   return bal.balance;
 }

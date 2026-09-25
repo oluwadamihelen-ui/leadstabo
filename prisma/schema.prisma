@@ -64,6 +64,7 @@ model Workspace {
   name             String
   slug             String   @unique
   outreachSettings Json     @default("{}")
+  stripeCustomerId String?  @unique
   createdAt        DateTime @default(now())
 
   members          WorkspaceMember[]
@@ -225,6 +226,7 @@ model CreditTransaction {
   category     CreditCategory
   description  String
   balanceAfter Int
+  externalRef  String?        @unique // e.g. Stripe checkout session — makes webhook grants idempotent
   createdAt    DateTime       @default(now())
 
   @@index([workspaceId, createdAt])
@@ -634,6 +636,9 @@ model Inbox {
   healthScore          Int            @default(100)
   signature            String?
   encryptedCredentials String? // AES-256-GCM; never sent to the browser
+  imapLastUid          Int?
+  lastSyncedAt         DateTime?
+  lastError            String?
   createdAt            DateTime       @default(now())
   warmup               Warmup?
   campaigns            Campaign[]
@@ -726,8 +731,10 @@ model Reply {
   aiConfidence      Float         @default(0)
   suggestedResponse String?
   handled           Boolean       @default(false)
+  messageId         String?
   receivedAt        DateTime      @default(now())
 
+  @@unique([workspaceId, messageId])
   @@index([workspaceId, receivedAt])
 }
 

@@ -11,19 +11,20 @@ import { notify } from "@/lib/services/notifications";
 import { email as emailSchema, id, ids, requiredText, text } from "@/lib/validation";
 import { run, UserError, type ActionResult } from "../action";
 
-const externalIds = z.array(z.string().regex(/^lp_\d+$/)).min(1, "Select at least one lead").max(1000);
+const externalIds = z.array(z.string().regex(/^[A-Za-z0-9_-]{1,64}$/)).min(1, "Select at least one lead").max(1000);
 
 /** Upserts provider prospects into the workspace (company + lead). Returns lead ids by externalId. */
 async function saveProspects(workspaceId: string, records: ProspectRecord[]) {
   const out = new Map<string, string>();
   for (const p of records) {
+    const domain = p.company.domain || p.email.split("@")[1];
     const company = await db.company.upsert({
-      where: { workspaceId_domain: { workspaceId, domain: p.company.domain } },
+      where: { workspaceId_domain: { workspaceId, domain } },
       create: {
         workspaceId,
-        name: p.company.name,
-        domain: p.company.domain,
-        website: `https://${p.company.domain}`,
+        name: p.company.name || domain,
+        domain,
+        website: `https://${domain}`,
         industry: p.company.industry,
         size: p.company.size,
         revenue: p.company.revenue,
@@ -32,7 +33,7 @@ async function saveProspects(workspaceId: string, records: ProspectRecord[]) {
         description: p.company.description,
         technologies: p.company.technologies,
         linkedinUrl: p.company.linkedinUrl,
-        founded: p.company.founded,
+        founded: p.company.founded || null,
       },
       update: {},
     });
@@ -68,13 +69,18 @@ async function revealInternal(workspaceId: string, extIds: string[]) {
   const have = new Set(existing.map((e) => e.externalId));
   const toReveal = extIds.filter((x) => !have.has(x));
   if (toReveal.length) {
-    await spendCredits(workspaceId, toReveal.length * CREDIT_COSTS.LEAD_REVEAL, "LEAD_DISCOVERY", `Revealed ${toReveal.length} lead${toReveal.length === 1 ? "" : "s"}`);
+    // Check the balance up front; charge only for leads that actually came back with an email.
+    const bal = await db.creditBalance.findUnique({ where: { workspaceId } });
+    if ((bal?.balance ?? 0) < toReveal.length * CREDIT_COSTS.LEAD_REVEAL) throw new UserError(`Not enough credits — this needs ${toReveal.length}. Top up in Billing.`);
   }
-  const records = await leadDatabase().getByIds(toReveal);
+  const records = toReveal.length ? (await leadDatabase().getByIds(toReveal)).filter((r) => r.email) : [];
+  if (records.length) {
+    await spendCredits(workspaceId, records.length * CREDIT_COSTS.LEAD_REVEAL, "LEAD_DISCOVERY", `Revealed ${records.length} lead${records.length === 1 ? "" : "s"}`);
+  }
   const saved = await saveProspects(workspaceId, records);
   const all = new Map(existing.map((e) => [e.externalId!, e.id]));
   for (const [k, v] of saved) all.set(k, v);
-  return { leadIds: Array.from(all.values()), revealed: toReveal.length };
+  return { leadIds: Array.from(all.values()), revealed: records.length, missing: toReveal.length - records.length };
 }
 
 export async function addProspectsToList(input: { externalIds: string[]; listId?: string; newListName?: string }): Promise<ActionResult<{ listId: string }>> {
@@ -89,12 +95,13 @@ export async function addProspectsToList(input: { externalIds: string[]; listId?
       const name = requiredText("List name", 80).parse(input.newListName ?? "");
       listId = (await db.leadList.create({ data: { workspaceId: ctx.workspaceId, name } })).id;
     }
-    const { leadIds, revealed } = await revealInternal(ctx.workspaceId, ext);
+    const { leadIds, revealed, missing } = await revealInternal(ctx.workspaceId, ext);
+    if (!leadIds.length) throw new UserError("No email could be found for the selected leads — no credits were used");
     await db.leadListMember.createMany({ data: leadIds.map((leadId) => ({ listId: listId!, leadId })), skipDuplicates: true });
     return {
       ok: true,
       data: { listId },
-      message: `${leadIds.length} lead${leadIds.length === 1 ? "" : "s"} added${revealed ? ` · ${revealed} credit${revealed === 1 ? "" : "s"} used` : ""}`,
+      message: `${leadIds.length} lead${leadIds.length === 1 ? "" : "s"} added${revealed ? ` · ${revealed} credit${revealed === 1 ? "" : "s"} used` : ""}${missing ? ` · ${missing} had no email (not charged)` : ""}`,
     };
   });
 }
@@ -115,7 +122,12 @@ async function verifyInternal(workspaceId: string, leadIds: string[], label: str
   const tally: Record<string, number> = { VALID: 0, INVALID: 0, RISKY: 0, UNKNOWN: 0, CATCH_ALL: 0 };
   const provider = verificationProvider();
   for (const l of leads) {
-    const res = await provider.verify(l.email);
+    let res;
+    try {
+      res = await provider.verify(l.email);
+    } catch (e) {
+      res = { email: l.email, status: "UNKNOWN" as const, score: 0, reason: `Verification service error: ${e instanceof Error ? e.message.slice(0, 80) : "unknown"}` };
+    }
     tally[res.status]++;
     await db.lead.update({ where: { id: l.id }, data: { emailStatus: res.status, verifiedAt: new Date() } });
     await db.leadActivity.create({ data: { leadId: l.id, type: "verified", description: `Email verified: ${res.status.toLowerCase().replace("_", "-")} (${res.reason})` } });

@@ -8,6 +8,8 @@ import type { InboxCredentials } from "@/lib/providers/types";
 import { addDays, startOfDay } from "@/lib/utils";
 import { notify } from "./notifications";
 import { renderTemplate, variableMap } from "./personalization";
+import { buildEmailHtml, toPlainText } from "@/lib/email-html";
+import { clickUrl, openPixelUrl } from "@/lib/tracking";
 import { readOutreachSettings, type OutreachSettings } from "@/lib/outreach-settings";
 
 /** Only these verification states may receive campaign email. */
@@ -81,9 +83,16 @@ export async function processDueSends(opts: { workspaceId?: string; force?: bool
     },
   });
   let sent = 0;
+  let failures = 0;
 
   for (const c of campaigns) {
     if (!c.inbox || !c.sequence || c.inbox.status !== "CONNECTED") continue;
+    if (!c.inbox.encryptedCredentials && emailProvider().live) {
+      // Demo/seeded inbox with no mailbox behind it — nothing can be sent until it's reconnected.
+      const msg = "No mailbox connected — add this inbox’s app password to send";
+      if (c.inbox.lastError !== msg) await db.inbox.update({ where: { id: c.inbox.id }, data: { lastError: msg } });
+      continue;
+    }
     const settings = readOutreachSettings(c.workspace.outreachSettings);
     if (!opts.force && !inWindow(c, now, settings.skipWeekends)) continue;
     const steps = c.sequence.steps.filter((s) => s.enabled);
@@ -113,7 +122,23 @@ export async function processDueSends(opts: { workspaceId?: string; force?: bool
         await db.campaignLead.update({ where: { id: cl.id }, data: { status: "COMPLETED", nextSendAt: null } });
         continue;
       }
-      await sendStep(c, inbox, step, cl.id, cl.lead, senderName, cl.currentStep, settings);
+      const r = await sendStep(c, inbox, step, cl.id, cl.lead, senderName, cl.currentStep, settings);
+      if (r.outcome === "failed") {
+        // Leave the lead scheduled so it retries on the next tick; stop this inbox on auth/connection errors.
+        failures++;
+        await db.inbox.update({ where: { id: inbox.id }, data: { lastError: r.error ?? "Send failed" } });
+        if (/Authentication|credentials|reconnect|reach the mail server|host not found/i.test(r.error ?? "")) {
+          await db.inbox.update({ where: { id: inbox.id }, data: { status: "ERROR" } });
+          await notify(c.workspaceId, {
+            type: "INBOX_DISCONNECTED",
+            title: `${inbox.email} can’t send`,
+            body: `${r.error}. Campaign “${c.name}” is waiting — reconnect the inbox.`,
+            href: "/settings/infrastructure/inboxes",
+          });
+          break;
+        }
+        continue;
+      }
       sent++;
       const next = steps[cl.currentStep + 1];
       const current = await db.campaignLead.findUniqueOrThrow({ where: { id: cl.id } });
@@ -125,7 +150,8 @@ export async function processDueSends(opts: { workspaceId?: string; force?: bool
           : { status: "COMPLETED", nextSendAt: null, currentStep: cl.currentStep + 1 },
       });
     }
-    await db.inbox.update({ where: { id: inbox.id }, data: { sentToday: { increment: due.length } } });
+    const attempted = await db.email.count({ where: { inboxId: inbox.id, campaignId: c.id, sentAt: { gte: today } } });
+    await db.inbox.update({ where: { id: inbox.id }, data: { sentToday: Math.max(inbox.sentToday, attempted) } });
     await refreshInboxHealth(inbox.id, c.workspaceId, settings.bounceThreshold);
 
     const remaining = await db.campaignLead.count({ where: { campaignId: c.id, status: { in: ["QUEUED", "IN_SEQUENCE"] } } });
@@ -139,8 +165,10 @@ export async function processDueSends(opts: { workspaceId?: string; force?: bool
       });
     }
   }
-  return { sent };
+  return { sent, failures };
 }
+
+type StepOutcome = "sent" | "bounced" | "failed";
 
 async function sendStep(
   c: Campaign,
@@ -151,33 +179,43 @@ async function sendStep(
   senderName: string,
   stepIndex: number,
   settings: OutreachSettings,
-) {
+): Promise<{ outcome: StepOutcome; error?: string }> {
   const vars = variableMap(lead, senderName.split(" ")[0]);
   const subject = renderTemplate(step.subject, vars);
   const signature = inbox.signature ? `\n\n${inbox.signature}` : "";
   const footer = settings.unsubscribeFooter ? `\n\n${settings.unsubscribeFooter}` : "";
   const body = renderTemplate(step.body, vars) + signature + footer;
+
+  // Follow-ups thread under the previous email to this lead.
+  const previous = await db.email.findFirst({
+    where: { campaignId: c.id, leadId: lead.id, messageId: { not: null }, status: { not: "FAILED" } },
+    orderBy: { sentAt: "desc" },
+  });
+  const email = await db.email.create({
+    data: { workspaceId: c.workspaceId, campaignId: c.id, leadId: lead.id, inboxId: inbox.id, stepId: step.id, subject, body: toPlainText(body), status: "SCHEDULED" },
+  });
+  const html = buildEmailHtml(body, {
+    pixelUrl: c.trackOpens ? openPixelUrl(email.id) : undefined,
+    rewriteLink: settings.trackClicks ? (u) => clickUrl(email.id, u) : undefined,
+  });
   const res = await emailProvider().send(credsFor(inbox), {
     from: { email: inbox.email, name: inbox.displayName },
-    to: { email: lead.email, name: `${lead.firstName} ${lead.lastName}` },
+    to: { email: lead.email, name: `${lead.firstName} ${lead.lastName}`.trim() },
     subject,
-    text: body,
+    text: toPlainText(body),
+    html,
+    inReplyTo: previous?.messageId ?? undefined,
+    references: previous?.messageId ? [previous.messageId] : undefined,
   });
   const now = new Date();
-  const email = await db.email.create({
-    data: {
-      workspaceId: c.workspaceId,
-      campaignId: c.id,
-      leadId: lead.id,
-      inboxId: inbox.id,
-      stepId: step.id,
-      subject,
-      body,
-      status: res.bounced ? "BOUNCED" : "DELIVERED",
-      messageId: res.messageId,
-      sentAt: now,
-    },
-  });
+
+  if (!res.accepted && !res.bounced) {
+    // Nothing left the building — drop the row so the retry doesn't duplicate it.
+    await db.email.delete({ where: { id: email.id } });
+    return { outcome: "failed", error: res.error };
+  }
+
+  await db.email.update({ where: { id: email.id }, data: { status: res.bounced ? "BOUNCED" : "DELIVERED", messageId: res.messageId, sentAt: now } });
   const base = { workspaceId: c.workspaceId, emailId: email.id, campaignId: c.id, inboxId: inbox.id };
   await db.emailEvent.createMany({
     data: [
@@ -191,15 +229,32 @@ async function sendStep(
   });
 
   if (res.bounced) {
-    await db.campaignLead.update({ where: { id: campaignLeadId }, data: { status: "BOUNCED", nextSendAt: null } });
-    const convo = await db.conversation.create({
-      data: { workspaceId: c.workspaceId, leadId: lead.id, campaignId: c.id, inboxId: inbox.id, subject: `Undeliverable: ${subject}`, label: "BOUNCED", unread: false, lastMessageAt: now },
-    });
-    await db.email.update({ where: { id: email.id }, data: { conversationId: convo.id } });
-    await db.lead.update({ where: { id: lead.id }, data: { emailStatus: "INVALID" } });
-    return;
+    await markBounced(c.workspaceId, email.id);
+    return { outcome: "bounced" };
   }
   if (emailProvider().name === "mock") await simulateEngagement(c, inbox, email.id, lead, subject, stepIndex);
+  return { outcome: "sent" };
+}
+
+/** Marks an email as hard-bounced: stops the sequence, flags the lead and files it in the Bounced folder. */
+export async function markBounced(workspaceId: string, emailId: string, occurredAt = new Date()) {
+  const email = await db.email.findFirst({ where: { id: emailId, workspaceId } });
+  if (!email) return;
+  await db.email.update({ where: { id: email.id }, data: { status: "BOUNCED" } });
+  const already = await db.emailEvent.findFirst({ where: { emailId: email.id, type: "BOUNCED" } });
+  if (!already) {
+    await db.emailEvent.create({ data: { workspaceId, emailId: email.id, campaignId: email.campaignId, inboxId: email.inboxId, type: "BOUNCED", occurredAt } });
+  }
+  if (email.campaignId) {
+    await db.campaignLead.updateMany({ where: { campaignId: email.campaignId, leadId: email.leadId }, data: { status: "BOUNCED", nextSendAt: null } });
+  }
+  await db.lead.update({ where: { id: email.leadId }, data: { emailStatus: "INVALID" } });
+  if (!email.conversationId) {
+    const convo = await db.conversation.create({
+      data: { workspaceId, leadId: email.leadId, campaignId: email.campaignId, inboxId: email.inboxId, subject: `Undeliverable: ${email.subject}`, label: "BOUNCED", unread: false, lastMessageAt: occurredAt },
+    });
+    await db.email.update({ where: { id: email.id }, data: { conversationId: convo.id } });
+  }
 }
 
 /** Recomputes 7-day bounce rate; auto-pauses the inbox past the workspace threshold. */
@@ -258,8 +313,10 @@ export async function recordInboundReply(input: {
   subject: string;
   body: string;
   receivedAt?: Date;
+  messageId?: string | null;
 }) {
   const receivedAt = input.receivedAt ?? new Date();
+  if (input.messageId && (await db.reply.findFirst({ where: { workspaceId: input.workspaceId, messageId: input.messageId } }))) return null;
   const lead = await db.lead.findUniqueOrThrow({ where: { id: input.leadId }, include: { company: true } });
   const ai = aiProvider();
   const ctx = { lead: { firstName: lead.firstName, company: lead.company?.name ?? null, title: lead.title }, reply: input.body };
@@ -300,6 +357,7 @@ export async function recordInboundReply(input: {
       campaignId: input.campaignId,
       emailId: input.emailId,
       body: input.body,
+      messageId: input.messageId ?? null,
       category,
       aiConfidence: cls.confidence ?? 0,
       suggestedResponse: suggestion.text ?? null,

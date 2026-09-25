@@ -8,12 +8,12 @@ import { HealthScore, StatusBadge } from "@/components/status";
 import { Card, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { EmptyState, Progress } from "@/components/ui/misc";
 import { Table, TBody, TD, TH, THead, TR } from "@/components/ui/table";
-import { cn, formatNumber } from "@/lib/utils";
+import { cn, formatDateTime, formatNumber } from "@/lib/utils";
 import { AddInboxButton, InboxActions } from "./inboxes-client";
 
 export const metadata: Metadata = { title: "Sending Inboxes" };
 
-const PROVIDER: Record<string, string> = { GOOGLE: "Google Workspace", MICROSOFT: "Microsoft 365", SMTP: "SMTP", OTHER: "Other" };
+const PROVIDER: Record<string, string> = { GOOGLE: "Google Workspace", MICROSOFT: "Microsoft 365", SMTP: "SMTP/IMAP", OTHER: "SMTP/IMAP" };
 
 export default async function InboxesPage() {
   const ctx = await requireWorkspace();
@@ -29,7 +29,7 @@ export default async function InboxesPage() {
         <div>
           <CardTitle>Sending Inboxes</CardTitle>
           <CardDescription>
-            {inboxes.length} of {sub?.plan.inboxLimit ?? "∞"} inboxes · credentials are encrypted at rest and never sent to the browser.
+            {inboxes.length} of {sub?.plan.inboxLimit ?? "∞"} inboxes · sends over SMTP, syncs replies & bounces over IMAP. Credentials are encrypted at rest.
           </CardDescription>
         </div>
         {isAdmin && <AddInboxButton />}
@@ -58,7 +58,10 @@ export default async function InboxesPage() {
                   <p className="font-medium">{i.email}</p>
                   <p className="text-[11px] text-muted-foreground">
                     {i.displayName} · {PROVIDER[i.provider]}
+                    {!i.encryptedCredentials && " · demo (no credentials)"}
                   </p>
+                  {i.lastError && <p className="mt-0.5 max-w-[260px] text-[11px] text-destructive">{i.lastError}</p>}
+                  {i.lastSyncedAt && !i.lastError && <p className="text-[11px] text-muted-foreground">Replies synced {formatDateTime(i.lastSyncedAt)}</p>}
                 </TD>
                 <TD className="text-muted-foreground">{i.domain?.domain ?? "—"}</TD>
                 <TD>

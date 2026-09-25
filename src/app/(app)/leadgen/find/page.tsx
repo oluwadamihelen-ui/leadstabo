@@ -23,6 +23,7 @@ export default async function FindLeadsPage({ searchParams }: { searchParams: Pr
   const savedMap = new Map(saved.map((s) => [s.externalId!, s]));
 
   const provider = leadDatabase();
+  let searchError: string | null = null;
   const { total, results } = await provider.search(
     {
       ...f,
@@ -31,7 +32,10 @@ export default async function FindLeadsPage({ searchParams }: { searchParams: Pr
     },
     f.page,
     PAGE_SIZE,
-  );
+  ).catch((e: unknown) => {
+    searchError = e instanceof Error ? e.message : "Lead search failed";
+    return { total: 0, results: [] };
+  });
 
   const rows: ProspectRow[] = results.map((p) => {
     const s = savedMap.get(p.externalId);
@@ -50,7 +54,7 @@ export default async function FindLeadsPage({ searchParams }: { searchParams: Pr
       technologies: p.company.technologies,
       location: `${p.city}, ${p.country}`,
       keywords: p.keywords,
-      email: s ? s.email : maskEmail(p.email),
+      email: s ? s.email : p.email ? maskEmail(p.email) : "Reveal to get email",
       emailStatus: s?.emailStatus ?? null,
       linkedinUrl: p.linkedinUrl,
     };
@@ -72,7 +76,9 @@ export default async function FindLeadsPage({ searchParams }: { searchParams: Pr
         lists={lists}
         credits={credits?.balance ?? 0}
         totalContacts={provider.totalContacts}
+        live={provider.live}
         canEdit={ctx.role !== "VIEWER"}
+        error={searchError}
       />
     </>
   );

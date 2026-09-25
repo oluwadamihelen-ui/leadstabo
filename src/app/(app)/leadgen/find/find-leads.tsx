@@ -83,6 +83,8 @@ export function FindLeads({
   credits,
   totalContacts,
   canEdit,
+  live,
+  error,
 }: {
   rows: ProspectRow[];
   total: number;
@@ -92,6 +94,8 @@ export function FindLeads({
   credits: number;
   totalContacts: number;
   canEdit: boolean;
+  live: boolean;
+  error: string | null;
 }) {
   const router = useRouter();
   const pathname = usePathname();
@@ -264,7 +268,7 @@ export function FindLeads({
       <div className="min-w-0">
         <div className="mb-3 flex flex-wrap items-center gap-2">
           <h1 className="mr-1 text-xl font-semibold tracking-tight">Discover</h1>
-          <span className="text-xs text-muted-foreground">{compactNumber(totalContacts)}+ contacts</span>
+          <span className="text-xs text-muted-foreground">{compactNumber(totalContacts)}+ contacts{live ? " · Apollo" : " · demo"}</span>
           <div className="ml-1 inline-flex h-8 rounded-lg border bg-muted/50 p-0.5 text-[13px]">
             {(["people", "companies"] as const).map((v) => (
               <button key={v} onClick={() => setView(v)} className={cn("flex items-center gap-1.5 rounded-md px-2.5 font-medium capitalize", view === v ? "bg-card shadow-sm" : "text-muted-foreground")}>
@@ -301,6 +305,12 @@ export function FindLeads({
           </div>
         </div>
 
+        {!live && (
+          <p className="mb-3 rounded-lg border border-warning/30 bg-warning/10 px-3 py-2 text-xs text-warning">
+            Demo lead database — set <code className="font-mono">APOLLO_API_KEY</code> to search Apollo’s live B2B database. See Settings → Integrations.
+          </p>
+        )}
+        {error && <p className="mb-3 rounded-lg border border-destructive/30 bg-destructive/10 px-3 py-2 text-xs text-destructive">{error}</p>}
         {someSelected && canEdit && (
           <div className="sticky top-16 z-20 mb-3 flex flex-wrap items-center gap-2 rounded-lg border border-primary/30 bg-card px-3 py-2 shadow-lg animate-fade-in">
             <span className="text-[13px] font-medium">{selected.size} selected</span>

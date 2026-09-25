@@ -7,7 +7,8 @@ import { assertWorkspace } from "@/lib/auth/guard";
 import { randomToken, sha256 } from "@/lib/crypto";
 import { outreachSettingsSchema } from "@/lib/outreach-settings";
 import { paymentsProvider } from "@/lib/providers";
-import { addCredits, CREDIT_PACKS } from "@/lib/services/credits";
+import { CREDIT_PACKS } from "@/lib/services/credits";
+import { applyCreditPurchase, applyPlan } from "@/lib/services/billing";
 import { notify } from "@/lib/services/notifications";
 import { email, id, requiredText } from "@/lib/validation";
 import { addDays } from "@/lib/utils";
@@ -125,8 +126,8 @@ export async function revokeApiKey(keyId: string) {
 
 // ── Billing ──────────────────────────────────────────────────────────────
 
-export async function changePlan(planKey: string, interval: "MONTHLY" | "ANNUAL") {
-  return run(async () => {
+export async function changePlan(planKey: string, interval: "MONTHLY" | "ANNUAL"): Promise<ActionResult<{ redirect?: string }>> {
+  return run<{ redirect?: string }>(async () => {
     const ctx = await assertWorkspace("OWNER");
     const plan = await db.plan.findUnique({ where: { key: z.string().max(40).parse(planKey) } });
     if (!plan) throw new UserError("Plan not found");
@@ -134,38 +135,37 @@ export async function changePlan(planKey: string, interval: "MONTHLY" | "ANNUAL"
     const iv = z.enum(["MONTHLY", "ANNUAL"]).parse(interval);
     const inboxes = await db.inbox.count({ where: { workspaceId: ctx.workspaceId } });
     if (inboxes > plan.inboxLimit) throw new UserError(`You have ${inboxes} inboxes; ${plan.name} allows ${plan.inboxLimit}. Remove some first.`);
-    const res = await paymentsProvider().changePlan({ workspaceId: ctx.workspaceId, planKey: plan.key, interval: iv });
-    if (!res.ok) throw new UserError("Payment failed");
-    const now = new Date();
-    const prev = await db.subscription.findUnique({ where: { workspaceId: ctx.workspaceId }, include: { plan: true } });
-    await db.subscription.upsert({
-      where: { workspaceId: ctx.workspaceId },
-      create: { workspaceId: ctx.workspaceId, planId: plan.id, interval: iv, status: "ACTIVE", currentPeriodStart: now, currentPeriodEnd: addDays(now, iv === "ANNUAL" ? 365 : 30), providerRef: res.providerRef },
-      update: { planId: plan.id, interval: iv, status: "ACTIVE", currentPeriodStart: now, currentPeriodEnd: addDays(now, iv === "ANNUAL" ? 365 : 30), providerRef: res.providerRef },
+    const sub = await db.subscription.findUnique({ where: { workspaceId: ctx.workspaceId } });
+    const start = await paymentsProvider().startPlanChange({
+      workspaceId: ctx.workspaceId,
+      customerEmail: ctx.user.email,
+      plan,
+      interval: iv,
+      currentSubscriptionRef: sub?.providerRef,
     });
-    // Upgrades grant the difference in monthly credits immediately.
-    const diff = plan.leadCredits - (prev?.plan.leadCredits ?? 0);
-    if (diff > 0) await addCredits(ctx.workspaceId, diff, "PLAN_GRANT", `Upgrade to ${plan.name} — prorated credits`);
-    await db.creditBalance.update({ where: { workspaceId: ctx.workspaceId }, data: { monthlyCredits: plan.leadCredits } });
-    return { ok: true as const, message: `You’re now on ${plan.name} (${iv.toLowerCase()})` };
+    if (start.mode === "redirect") return { ok: true, data: { redirect: start.url }, message: "Redirecting to secure checkout…" };
+    await applyPlan({ workspaceId: ctx.workspaceId, planKey: plan.key, interval: iv, providerRef: start.providerRef });
+    return { ok: true, data: {}, message: `You’re now on ${plan.name} (${iv.toLowerCase()})` };
   });
 }
 
-export async function buyCredits(credits: number) {
-  return run(async () => {
+export async function buyCredits(credits: number): Promise<ActionResult<{ redirect?: string }>> {
+  return run<{ redirect?: string }>(async () => {
     const ctx = await assertWorkspace("ADMIN");
     const pack = CREDIT_PACKS.find((p) => p.credits === credits);
     if (!pack) throw new UserError("Unknown credit pack");
-    const res = await paymentsProvider().chargeCredits({ workspaceId: ctx.workspaceId, credits: pack.credits, amountMinor: pack.priceMinor });
-    if (!res.ok) throw new UserError("Payment failed");
-    await addCredits(ctx.workspaceId, pack.credits, "PURCHASE", `Purchased ${pack.credits.toLocaleString()} credits`);
-    return { ok: true as const, message: `${pack.credits.toLocaleString()} credits added` };
+    const start = await paymentsProvider().startCreditPurchase({ workspaceId: ctx.workspaceId, customerEmail: ctx.user.email, credits: pack.credits, amountMinor: pack.priceMinor });
+    if (start.mode === "redirect") return { ok: true, data: { redirect: start.url }, message: "Redirecting to secure checkout…" };
+    await applyCreditPurchase(ctx.workspaceId, pack.credits, start.providerRef);
+    return { ok: true, data: {}, message: `${pack.credits.toLocaleString()} credits added` };
   });
 }
 
 export async function cancelSubscription() {
   return run(async () => {
     const ctx = await assertWorkspace("OWNER");
+    const sub = await db.subscription.findUnique({ where: { workspaceId: ctx.workspaceId } });
+    await paymentsProvider().cancel(sub?.providerRef ?? null);
     await db.subscription.update({ where: { workspaceId: ctx.workspaceId }, data: { status: "CANCELED" } });
     return { ok: true as const, message: "Subscription will end at the close of this billing period" };
   });

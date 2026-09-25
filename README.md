@@ -15,7 +15,7 @@ ICP → Find Leads → Verify → Create Offer → Personalize → Write Email �
 | Data | PostgreSQL + Prisma ORM |
 | Auth | Email/password with bcrypt, DB-backed sessions (httpOnly cookie), optional TOTP 2FA |
 | Jobs | `scripts/worker.ts` polling worker, or `POST /api/cron/tick` for serverless schedulers |
-| AI | Provider abstraction — offline mock by default, Claude (`@anthropic-ai/sdk`) when configured |
+| Integrations | SMTP/IMAP (nodemailer, imapflow), Apollo.io, ZeroBounce, Stripe, Claude (`@anthropic-ai/sdk`) |
 
 ## Getting started
 
@@ -67,26 +67,37 @@ src/app/api/                 search, CSV export, cron tick, REST API v1
 scripts/worker.ts            background worker
 ```
 
-### Providers
+### Real services
 
-Every external dependency sits behind an interface in `src/lib/providers/types.ts`. `src/lib/providers/index.ts` selects the implementation.
+Every external capability sits behind an interface in `src/lib/providers/types.ts`. The registry in `src/lib/providers/index.ts` uses the real provider whenever it can run. **Settings → Integrations** shows what's live.
 
-| Capability | Interface | Default |
-| --- | --- | --- |
-| Email sending | `EmailProvider` | mock: deterministic ~2% bounces and simulated opens/replies |
-| Email verification | `VerificationProvider` | mock: deterministic status per address |
-| Lead database | `LeadDatabaseProvider` | mock: seeded dataset of ~640 prospects |
-| DNS checks | `DnsProvider` | mock (domains containing "broken" fail DMARC) |
-| Payments | `PaymentsProvider` | mock (plan changes and credit packs succeed) |
-| AI | `AiProvider` | mock templates; set `AI_PROVIDER=anthropic` + `ANTHROPIC_API_KEY` to use Claude |
+| Capability | Real provider | Needs | Without a key |
+| --- | --- | --- | --- |
+| Email sending | Each inbox's own mailbox over **SMTP** (nodemailer) | Connect inboxes with an app password | — (always real) |
+| Replies & bounces | **IMAP** sync (imapflow + mailparser), matched by `In-Reply-To`/`References`, DSN bounce parsing | Worker or cron running | — |
+| Open / click tracking | Pixel `/api/t/o/:id`, signed redirects `/api/t/c/:id` | Public `APP_URL` | Not recorded on localhost |
+| DNS checks | Live DNS (SPF, DKIM selectors, DMARC, MX, ownership TXT) with a DNS-over-HTTPS fallback | — | — (always real) |
+| Email verification | **ZeroBounce** mailbox-level checks | `ZEROBOUNCE_API_KEY` | Live syntax / disposable / MX checks |
+| Lead database | **Apollo.io** People Search + bulk enrichment | `APOLLO_API_KEY` | Built-in demo dataset |
+| Payments | **Stripe Checkout** + webhook `/api/webhooks/stripe` | `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET` | Instant test-mode plan changes |
+| AI | **Claude** (`@anthropic-ai/sdk`) | `ANTHROPIC_API_KEY` | Templates |
 
-To go live, implement the interface (for example SMTP/Gmail API, ZeroBounce, Apollo, Stripe) and return it from the registry. No UI changes are needed.
+Set `<CAPABILITY>_PROVIDER=mock` (e.g. `EMAIL_PROVIDER=mock`) to force the offline simulation for local demos.
+
+**Connecting inboxes:**
+- **Google Workspace:** turn on 2-Step Verification, create an app password at myaccount.google.com/apppasswords, and enable IMAP.
+- **Microsoft 365:** enable Authenticated SMTP for the mailbox.
+- **Anything else:** enter SMTP and IMAP hosts.
+
+Seeded demo inboxes have no credentials, so they never send. Connect a real inbox and point a campaign at it.
+
+**Stripe:** create a webhook endpoint for `https://<APP_URL>/api/webhooks/stripe` with the events `checkout.session.completed`, `invoice.paid`, `invoice.payment_failed`, `customer.subscription.updated` and `customer.subscription.deleted`. Prices come from the `Plan` table, so no Stripe products need to be created by hand. For local testing, use `stripe listen --forward-to localhost:3000/api/webhooks/stripe`.
 
 ### Background sending
 
 `processDueSends()` finds due `CampaignLead`s and enforces each campaign's send window, timezone and weekend setting, plus the campaign and inbox daily limits. It then renders variables, sends through the provider, records `Email` and `EmailEvent`s, and schedules the next step. Replies stop the sequence. It also recomputes each inbox's bounce rate and auto-pauses an inbox (with a notification) above the workspace threshold. `advanceWarmups()` ramps warmup volume once per day.
 
-- Long-running: `npm run worker`
+- Long-running: `npm run worker` (sends, IMAP reply/bounce sync every 3 ticks, warmup)
 - Serverless: `POST /api/cron/tick` with `Authorization: Bearer $CRON_SECRET`
 
 ## Security

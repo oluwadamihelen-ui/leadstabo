@@ -3,7 +3,8 @@
 import { z } from "zod";
 import { db } from "@/lib/db";
 import { assertWorkspace } from "@/lib/auth/guard";
-import { encrypt, randomToken } from "@/lib/crypto";
+import { decrypt, encrypt, randomToken } from "@/lib/crypto";
+import { syncInbox } from "@/lib/services/mailbox-sync";
 import { emailProvider } from "@/lib/providers";
 import type { InboxCredentials } from "@/lib/providers/types";
 import { checkDomain, requiredRecords } from "@/lib/services/domains";
@@ -47,8 +48,10 @@ const inboxSchema = z.object({
   dailyLimit: z.number().int().min(1).max(200),
   smtpHost: text(200).optional(),
   smtpPort: z.number().int().min(1).max(65535).optional(),
+  imapHost: text(200).optional(),
+  imapPort: z.number().int().min(1).max(65535).optional(),
   username: text(200).optional(),
-  password: z.string().max(500).optional(),
+  password: z.string().min(1, "App password is required").max(500),
   signature: text(1000).optional(),
   startWarmup: z.boolean(),
 });
@@ -65,13 +68,14 @@ export async function addInbox(input: z.input<typeof inboxSchema>) {
     const creds: InboxCredentials = {
       provider: d.provider,
       email: d.email,
-      smtpHost: d.smtpHost,
+      smtpHost: d.smtpHost || undefined,
       smtpPort: d.smtpPort,
+      imapHost: d.imapHost || undefined,
+      imapPort: d.imapPort,
       username: d.username || d.email,
-      password: d.password,
-      // OAuth providers would store the refresh token returned by the consent flow here.
-      oauthToken: d.provider === "GOOGLE" || d.provider === "MICROSOFT" ? `mock-oauth-${randomToken(8)}` : undefined,
+      password: d.password.replace(/\s+/g, ""), // Google shows app passwords with spaces
     };
+    if ((d.provider === "SMTP" || d.provider === "OTHER") && (!creds.smtpHost || !creds.imapHost)) throw new UserError("SMTP and IMAP hosts are required");
     const test = await emailProvider().testConnection(creds);
     if (!test.ok) throw new UserError(`Connection failed: ${test.error}`);
 
@@ -159,5 +163,37 @@ export async function configureWarmup(inboxId: string, input: { targetPerDay: nu
     const d = z.object({ targetPerDay: z.number().int().min(5).max(100), rampIncrement: z.number().int().min(1).max(10) }).parse(input);
     await db.warmup.update({ where: { id: w.id }, data: { ...d, currentPerDay: Math.min(w.currentPerDay, d.targetPerDay) } });
     return { ok: true as const, message: "Warmup limits saved" };
+  });
+}
+
+/** Updates the stored password (e.g. after it was rotated) and re-tests the connection. */
+export async function reconnectInbox(inboxId: string, password: string) {
+  return run(async () => {
+    const ctx = await assertWorkspace("ADMIN");
+    const inbox = await db.inbox.findFirst({ where: { id: id.parse(inboxId), workspaceId: ctx.workspaceId } });
+    if (!inbox) throw new UserError("Inbox not found");
+    let creds: InboxCredentials;
+    try {
+      creds = inbox.encryptedCredentials ? JSON.parse(decrypt(inbox.encryptedCredentials)) : { provider: inbox.provider, email: inbox.email };
+    } catch {
+      creds = { provider: inbox.provider, email: inbox.email };
+    }
+    creds.password = z.string().min(1).max(500).parse(password).replace(/\s+/g, "");
+    const test = await emailProvider().testConnection(creds);
+    if (!test.ok) throw new UserError(`Connection failed: ${test.error}`);
+    await db.inbox.update({ where: { id: inbox.id }, data: { encryptedCredentials: encrypt(JSON.stringify(creds)), status: "CONNECTED", lastError: null } });
+    return { ok: true as const, message: `${inbox.email} reconnected` };
+  });
+}
+
+/** Pulls new replies and bounces from the inbox over IMAP right now. */
+export async function syncInboxNow(inboxId: string) {
+  return run(async () => {
+    const ctx = await assertWorkspace("MEMBER");
+    const inbox = await db.inbox.findFirst({ where: { id: id.parse(inboxId), workspaceId: ctx.workspaceId } });
+    if (!inbox) throw new UserError("Inbox not found");
+    const r = await syncInbox(inbox.id);
+    if (r.error) throw new UserError(r.error);
+    return { ok: true as const, message: `Synced — ${r.replies} new repl${r.replies === 1 ? "y" : "ies"}, ${r.bounces} bounce${r.bounces === 1 ? "" : "s"}` };
   });
 }

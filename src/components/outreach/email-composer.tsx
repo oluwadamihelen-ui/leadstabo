@@ -34,6 +34,7 @@ import { aiAssist } from "@/server/actions/ai";
 import { renderTemplate, VARIABLES, variableMap } from "@/lib/services/personalization";
 import { spamReport } from "@/lib/services/spam";
 import { cn } from "@/lib/utils";
+import { formatEmailHtml } from "@/lib/email-html";
 import type { AiTask } from "@/lib/providers/types";
 
 export interface PreviewLead {
@@ -71,16 +72,7 @@ const AI_ACTIONS: { task: AiTask; label: string }[] = [
   { task: "follow_up", label: "Create follow-up" },
 ];
 
-/** Lightweight formatting: **bold**, _italic_, [text](url), "- " bullets. Escapes HTML first. */
-export function formatEmailHtml(text: string, rich: boolean) {
-  const esc = text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
-  if (!rich) return esc.replace(/\*\*(.+?)\*\*/g, "$1").replace(/_(.+?)_/g, "$1").replace(/\[(.+?)\]\((https?:\/\/[^\s)]+)\)/g, "$1 ($2)");
-  return esc
-    .replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>")
-    .replace(/(^|\s)_(.+?)_(?=\s|$|[.,!?])/g, "$1<em>$2</em>")
-    .replace(/\[(.+?)\]\((https?:\/\/[^\s)]+)\)/g, '<a href="$2" target="_blank" rel="noreferrer noopener" class="text-info underline">$1</a>')
-    .replace(/^- (.*)$/gm, "• $1");
-}
+export { formatEmailHtml };
 
 export function EmailComposer({
   subject,
