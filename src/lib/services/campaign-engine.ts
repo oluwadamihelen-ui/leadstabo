@@ -179,6 +179,11 @@ async function sendStep(
 
   if (res.bounced) {
     await db.campaignLead.update({ where: { id: campaignLeadId }, data: { status: "BOUNCED", nextSendAt: null } });
+    const convo = await db.conversation.create({
+      data: { workspaceId: c.workspaceId, leadId: lead.id, campaignId: c.id, inboxId: inbox.id, subject: `Undeliverable: ${subject}`, label: "BOUNCED", unread: false, lastMessageAt: now },
+    });
+    await db.email.update({ where: { id: email.id }, data: { conversationId: convo.id } });
+    await db.lead.update({ where: { id: lead.id }, data: { emailStatus: "INVALID" } });
     return;
   }
   if (emailProvider().name === "mock") await simulateEngagement(c, inbox, email.id, lead, subject, stepIndex);

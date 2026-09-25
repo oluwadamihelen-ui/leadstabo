@@ -60,6 +60,8 @@ export interface LeadSearchFilters {
   keywords?: string[];
   seniorities?: string[];
   departments?: string[];
+  excludeDepartments?: string[];
+  excludeIds?: string[];
   hasEmail?: boolean;
 }
 

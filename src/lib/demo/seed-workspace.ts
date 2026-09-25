@@ -382,7 +382,7 @@ export async function seedDemoWorkspace(db: PrismaClient, workspaceId: string, o
         sender_name: "Nicholas",
       };
       const render = (s: string) => s.replace(/\{\{\s*([a-z_]+)\s*\}\}/g, (_, k) => vars[k] ?? "");
-      const startDay = spec.started - (li % 5);
+      const startDay = spec.status === "ACTIVE" ? spec.started - Math.floor((li * spec.started) / Math.max(1, spec.leads.length)) : spec.started - (li % 5);
       let stepReached = 0;
       let replied: (typeof REPLIES)[number] | null = null;
       let bounced = false;
@@ -395,7 +395,7 @@ export async function seedDemoWorkspace(db: PrismaClient, workspaceId: string, o
         const day = startDay - step.delayDays;
         if (day < 0) break;
         const sentAt = daysAgo(day, 9 + (li % 7), (li * 7) % 60);
-        const isBounce = si === 0 && r() < 0.025;
+        const isBounce = si === 0 && r() < 0.04;
         const email = await db.email.create({
           data: {
             workspaceId,
@@ -424,6 +424,10 @@ export async function seedDemoWorkspace(db: PrismaClient, workspaceId: string, o
         lastSubject = email.subject;
         if (isBounce) {
           bounced = true;
+          const bc = await db.conversation.create({
+            data: { workspaceId, leadId: lead.id, campaignId: campaign.id, inboxId: spec.inbox.id, subject: `Undeliverable: ${email.subject}`, label: "BOUNCED", unread: false, lastMessageAt: sentAt, createdAt: sentAt },
+          });
+          await db.email.update({ where: { id: email.id }, data: { conversationId: bc.id } });
           break;
         }
         if (willReply && si === replyAtStep) {

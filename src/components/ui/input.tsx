@@ -57,13 +57,15 @@ export function Field({
   );
 }
 
+const CHEVRON = `url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%23888' stroke-width='2'><path d='m6 9 6 6 6-6'/></svg>")`;
+
 export const NativeSelect = React.forwardRef<HTMLSelectElement, React.SelectHTMLAttributes<HTMLSelectElement>>(
-  ({ className, children, ...props }, ref) => (
+  ({ className, children, style, ...props }, ref) => (
     <select
       ref={ref}
+      style={{ backgroundImage: CHEVRON, ...style }}
       className={cn(
         "flex h-9 w-full appearance-none rounded-md border border-input bg-surface bg-[length:16px] bg-[right_0.5rem_center] bg-no-repeat pl-3 pr-8 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:opacity-50",
-        "bg-[url('data:image/svg+xml;utf8,<svg xmlns=%22http://www.w3.org/2000/svg%22 fill=%22none%22 viewBox=%220 0 24 24%22 stroke=%22%23888%22 stroke-width=%222%22><path d=%22m6 9 6 6 6-6%22/></svg>')]",
         className,
       )}
       {...props}

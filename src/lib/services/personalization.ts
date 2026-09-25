@@ -17,12 +17,12 @@ export interface RenderLead {
   title?: string | null;
   industry?: string | null;
   location?: string | null;
-  company?: { name: string } | null;
+  company?: { name: string } | string | null;
   companyName?: string | null;
 }
 
 export function variableMap(lead: RenderLead | null, senderName = "") {
-  const companyName = lead?.company?.name ?? lead?.companyName ?? "";
+  const companyName = (typeof lead?.company === "string" ? lead.company : lead?.company?.name) ?? lead?.companyName ?? "";
   return {
     first_name: lead?.firstName ?? "",
     last_name: lead?.lastName ?? "",

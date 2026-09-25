@@ -29,7 +29,7 @@ const signupSchema = z.object({
 });
 
 export async function signup(input: z.input<typeof signupSchema>): Promise<ActionResult<{ redirect: string }>> {
-  return run(async () => {
+  return run<{ redirect: string }>(async () => {
     const ip = await clientIp();
     if (!rateLimit(`signup:${ip}`, 10, 60 * 60_000).ok) return { ok: false, error: "Too many attempts. Try again later." };
     const data = signupSchema.parse(input);
@@ -62,7 +62,7 @@ const loginSchema = z.object({ email, password: z.string().min(1).max(128), code
 export async function login(
   input: z.input<typeof loginSchema>,
 ): Promise<ActionResult<{ needs2fa?: boolean; redirect?: string }>> {
-  return run(async () => {
+  return run<{ needs2fa?: boolean; redirect?: string }>(async () => {
     const data = loginSchema.parse(input);
     const ip = await clientIp();
     const rl = rateLimit(`login:${ip}:${data.email}`, 8, 15 * 60_000);

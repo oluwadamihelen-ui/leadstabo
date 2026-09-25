@@ -167,8 +167,10 @@ function build(): ProspectRecord[] {
         seniority: seniorityFor(title),
         department: dept,
         linkedinUrl: `https://www.linkedin.com/in/${first.toLowerCase()}-${last.toLowerCase().replace(/\s/g, "")}-${id}`,
-        city: r() < 0.8 ? c.loc.city : pick(r, LOCATIONS).city,
-        country: c.loc.country,
+        ...(() => {
+          const l = r() < 0.8 ? c.loc : pick(r, LOCATIONS.filter((x) => x.country === c.loc.country));
+          return { city: l.city, country: l.country };
+        })(),
         keywords: c.keywords.slice(0, 2 + Math.floor(r() * 2)),
         company: {
           name: c.name,

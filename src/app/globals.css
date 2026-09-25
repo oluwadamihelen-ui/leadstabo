@@ -30,9 +30,14 @@
     --input: 220 13% 86%;
     --ring: 22 88% 55%;
     --radius: 0.625rem;
+    /* Categorical chart slots (validated set: blue, orange, aqua) */
+    --series-1: #2a78d6;
+    --series-2: #eb6834;
+    --series-3: #1baf7a;
   }
 
   .dark {
+    color-scheme: dark;
     --background: 240 6% 4%;
     --foreground: 0 0% 96%;
     --surface: 240 5% 6.5%;
@@ -58,6 +63,9 @@
     --border: 240 4% 14%;
     --input: 240 4% 16%;
     --ring: 22 92% 56%;
+    --series-1: #3987e5;
+    --series-2: #d95926;
+    --series-3: #199e70;
   }
 
   * {

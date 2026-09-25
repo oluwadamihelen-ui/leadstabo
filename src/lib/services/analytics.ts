@@ -139,3 +139,14 @@ export async function trend(workspaceId: string, days = 7) {
     positive: delta(cur.positive, prev.positive),
   };
 }
+
+/** Distinct-lead engagement counts (for lead-level funnels). */
+export async function leadEngagement(workspaceId: string) {
+  const rows = await db.$queryRaw<{ type: string; n: bigint }[]>`
+    SELECT ev.type::text AS type, COUNT(DISTINCT e."leadId") AS n
+    FROM "EmailEvent" ev JOIN "Email" e ON e.id = ev."emailId"
+    WHERE ev."workspaceId" = ${workspaceId} AND ev.type IN ('SENT', 'OPENED', 'REPLIED')
+    GROUP BY 1`;
+  const get = (t: string) => Number(rows.find((r) => r.type === t)?.n ?? 0);
+  return { contacted: get("SENT"), opened: get("OPENED"), replied: get("REPLIED") };
+}

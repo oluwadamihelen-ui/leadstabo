@@ -24,7 +24,8 @@ function matches(p: ProspectRecord, f: LeadSearchFilters) {
     (!f.technologies?.length || f.technologies.some((t) => p.company.technologies.includes(t))) &&
     (!f.keywords?.length || f.keywords.some((k) => p.keywords.some((pk) => pk.includes(norm(k))))) &&
     (!f.seniorities?.length || f.seniorities.includes(p.seniority)) &&
-    (!f.departments?.length || f.departments.includes(p.department))
+    (!f.departments?.length || f.departments.includes(p.department)) &&
+    !f.excludeDepartments?.includes(p.department)
   );
 }
 
@@ -32,7 +33,8 @@ export const mockLeadDatabase: LeadDatabaseProvider = {
   name: "mock",
   totalContacts: 412_000_000,
   async search(filters, page, pageSize) {
-    const all = prospects().filter((p) => matches(p, filters));
+    const exclude = new Set(filters.excludeIds ?? []);
+    const all = prospects().filter((p) => !exclude.has(p.externalId) && matches(p, filters));
     const start = (page - 1) * pageSize;
     return { total: all.length, results: all.slice(start, start + pageSize) };
   },
