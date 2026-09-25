@@ -60,10 +60,11 @@ model Session {
 }
 
 model Workspace {
-  id        String   @id @default(cuid())
-  name      String
-  slug      String   @unique
-  createdAt DateTime @default(now())
+  id               String   @id @default(cuid())
+  name             String
+  slug             String   @unique
+  outreachSettings Json     @default("{}")
+  createdAt        DateTime @default(now())
 
   members          WorkspaceMember[]
   invitations      TeamInvitation[]

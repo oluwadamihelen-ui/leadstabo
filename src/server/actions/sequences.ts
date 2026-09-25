@@ -1,6 +1,5 @@
 "use server";
 
-import { z } from "zod";
 import { db } from "@/lib/db";
 import { assertWorkspace } from "@/lib/auth/guard";
 import { id, requiredText, text } from "@/lib/validation";

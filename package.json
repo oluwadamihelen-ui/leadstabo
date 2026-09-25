@@ -12,7 +12,7 @@
     "db:migrate": "prisma migrate dev",
     "db:seed": "tsx prisma/seed.ts",
     "db:reset": "prisma migrate reset --force",
-    "worker": "tsx scripts/worker.ts"
+    "worker": "tsx --conditions=react-server scripts/worker.ts"
   },
   "prisma": {
     "seed": "tsx prisma/seed.ts"

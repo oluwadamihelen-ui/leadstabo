@@ -46,14 +46,17 @@ export function Topbar({ data, onMenu, onSearch }: { data: ShellData; onMenu: ()
   }
 
   return (
-    <header className="sticky top-0 z-30 flex h-14 items-center gap-2 border-b bg-background/80 px-3 backdrop-blur-md sm:px-5">
+    <header className="sticky top-0 z-30 flex h-14 min-w-0 items-center gap-2 border-b bg-background/80 px-3 backdrop-blur-md sm:px-5">
       <button className="rounded-md p-2 text-muted-foreground hover:bg-accent lg:hidden" onClick={onMenu} aria-label="Open menu">
         <Menu className="size-5" />
       </button>
 
+      <button onClick={onSearch} className="flex size-9 items-center justify-center rounded-md text-muted-foreground hover:bg-accent sm:hidden" aria-label="Search">
+        <Search className="size-[18px]" />
+      </button>
       <button
         onClick={onSearch}
-        className="flex h-9 w-full max-w-md items-center gap-2 rounded-md border bg-surface px-3 text-[13px] text-muted-foreground transition-colors hover:bg-accent"
+        className="hidden h-9 w-full min-w-0 max-w-md items-center gap-2 rounded-md border bg-surface px-3 text-[13px] text-muted-foreground transition-colors hover:bg-accent sm:flex"
       >
         <Search className="size-4" />
         <span className="flex-1 truncate text-left">Search leads, campaigns, lessons…</span>

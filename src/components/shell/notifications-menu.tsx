@@ -1,4 +1,5 @@
 "use client";
+import { TimeAgo } from "@/components/time";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
@@ -16,7 +17,7 @@ import {
   type LucideIcon,
 } from "lucide-react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuTrigger } from "@/components/ui/dropdown";
-import { cn, timeAgo } from "@/lib/utils";
+import { cn } from "@/lib/utils";
 import { markNotificationsRead } from "@/server/actions/account";
 import { useAction } from "@/components/hooks/use-action";
 import type { ShellNotification } from "./types";
@@ -48,7 +49,7 @@ export function NotificationRow({ n, onOpen }: { n: ShellNotification; onOpen?: 
           {!n.readAt && <span className="size-1.5 shrink-0 rounded-full bg-primary" />}
         </p>
         <p className="line-clamp-2 text-xs text-muted-foreground">{n.body}</p>
-        <p className="mt-1 text-[11px] text-muted-foreground/70">{timeAgo(n.createdAt)}</p>
+        <p className="mt-1 text-[11px] text-muted-foreground/70"><TimeAgo date={n.createdAt} /></p>
       </div>
     </div>
   );

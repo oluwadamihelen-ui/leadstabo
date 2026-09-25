@@ -90,3 +90,21 @@ export async function logout() {
 export async function currentUserEmail() {
   return (await getSession())?.user.email ?? null;
 }
+
+export async function acceptInvitation(token: string) {
+  return run(async () => {
+    const session = await getSession();
+    if (!session) return { ok: false as const, error: "Sign in to accept this invitation" };
+    const inv = await db.teamInvitation.findUnique({ where: { tokenHash: sha256(z.string().max(200).parse(token)) } });
+    if (!inv || inv.status !== "PENDING" || inv.expiresAt < new Date()) return { ok: false as const, error: "This invitation is invalid or has expired" };
+    if (inv.email !== session.user.email) return { ok: false as const, error: `This invitation was sent to ${inv.email}` };
+    await db.workspaceMember.upsert({
+      where: { workspaceId_userId: { workspaceId: inv.workspaceId, userId: session.userId } },
+      create: { workspaceId: inv.workspaceId, userId: session.userId, role: inv.role },
+      update: {},
+    });
+    await db.teamInvitation.update({ where: { id: inv.id }, data: { status: "ACCEPTED" } });
+    await db.user.update({ where: { id: session.userId }, data: { lastWorkspaceId: inv.workspaceId } });
+    return { ok: true as const, message: "Welcome to the team!" };
+  });
+}

@@ -2,7 +2,7 @@ import { NextResponse, type NextRequest } from "next/server";
 
 // Edge gate: cheap cookie presence check. Real session validation and workspace
 // authorisation happen server-side in requireWorkspace()/assertWorkspace().
-const APP_PREFIXES = ["/dashboard", "/leadgen", "/leads", "/outreach", "/academy", "/settings", "/analytics", "/notifications", "/onboarding"];
+const APP_PREFIXES = ["/dashboard", "/help", "/leadgen", "/leads", "/outreach", "/academy", "/settings", "/analytics", "/notifications", "/onboarding"];
 
 export function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;

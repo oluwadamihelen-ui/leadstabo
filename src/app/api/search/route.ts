@@ -15,7 +15,7 @@ export async function GET(req: NextRequest) {
 
   const [leads, companies, campaigns, sequences, lessons, conversations] = await Promise.all([
     db.lead.findMany({
-      where: { workspaceId: w, OR: [{ firstName: ci }, { lastName: ci }, { email: ci }, { title: ci }] },
+      where: { workspaceId: w, OR: [{ firstName: ci }, { lastName: ci }, { email: ci }, { title: ci }, { company: { name: ci } }] },
       include: { company: true },
       take: 6,
     }),

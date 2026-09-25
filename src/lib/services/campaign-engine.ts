@@ -8,6 +8,7 @@ import type { InboxCredentials } from "@/lib/providers/types";
 import { addDays, startOfDay } from "@/lib/utils";
 import { notify } from "./notifications";
 import { renderTemplate, variableMap } from "./personalization";
+import { readOutreachSettings, type OutreachSettings } from "@/lib/outreach-settings";
 
 /** Only these verification states may receive campaign email. */
 export const SENDABLE_STATUSES: EmailStatus[] = ["VALID", "CATCH_ALL"];
@@ -41,13 +42,17 @@ export async function launchCampaign(campaignId: string, workspaceId: string) {
   return eligible.length;
 }
 
-function inWindow(c: Campaign, now: Date) {
+function inWindow(c: Campaign, now: Date, skipWeekends: boolean) {
   let hour = now.getUTCHours();
+  let weekday = now.getUTCDay();
   try {
-    hour = Number(new Intl.DateTimeFormat("en-US", { hour: "numeric", hourCycle: "h23", timeZone: c.timezone }).format(now));
+    const parts = new Intl.DateTimeFormat("en-US", { hour: "numeric", hourCycle: "h23", weekday: "short", timeZone: c.timezone }).formatToParts(now);
+    hour = Number(parts.find((p) => p.type === "hour")?.value ?? hour);
+    weekday = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].indexOf(parts.find((p) => p.type === "weekday")?.value ?? "");
   } catch {
     /* invalid tz → UTC */
   }
+  if (skipWeekends && (weekday === 0 || weekday === 6)) return false;
   return hour >= c.sendWindowStart && hour < c.sendWindowEnd;
 }
 
@@ -69,13 +74,18 @@ export async function processDueSends(opts: { workspaceId?: string; force?: bool
   const today = startOfDay(now);
   const campaigns = await db.campaign.findMany({
     where: { status: "ACTIVE", ...(opts.workspaceId ? { workspaceId: opts.workspaceId } : {}) },
-    include: { inbox: true, sequence: { include: { steps: { orderBy: { order: "asc" } } } }, workspace: { include: { members: { include: { user: true }, where: { role: "OWNER" } } } } },
+    include: {
+      inbox: true,
+      sequence: { include: { steps: { orderBy: { order: "asc" } } } },
+      workspace: { include: { members: { include: { user: true }, where: { role: "OWNER" } } } },
+    },
   });
   let sent = 0;
 
   for (const c of campaigns) {
     if (!c.inbox || !c.sequence || c.inbox.status !== "CONNECTED") continue;
-    if (!opts.force && !inWindow(c, now)) continue;
+    const settings = readOutreachSettings(c.workspace.outreachSettings);
+    if (!opts.force && !inWindow(c, now, settings.skipWeekends)) continue;
     const steps = c.sequence.steps.filter((s) => s.enabled);
     if (!steps.length) continue;
 
@@ -103,7 +113,7 @@ export async function processDueSends(opts: { workspaceId?: string; force?: bool
         await db.campaignLead.update({ where: { id: cl.id }, data: { status: "COMPLETED", nextSendAt: null } });
         continue;
       }
-      await sendStep(c, inbox, step, cl.id, cl.lead, senderName, cl.currentStep);
+      await sendStep(c, inbox, step, cl.id, cl.lead, senderName, cl.currentStep, settings);
       sent++;
       const next = steps[cl.currentStep + 1];
       const current = await db.campaignLead.findUniqueOrThrow({ where: { id: cl.id } });
@@ -116,6 +126,7 @@ export async function processDueSends(opts: { workspaceId?: string; force?: bool
       });
     }
     await db.inbox.update({ where: { id: inbox.id }, data: { sentToday: { increment: due.length } } });
+    await refreshInboxHealth(inbox.id, c.workspaceId, settings.bounceThreshold);
 
     const remaining = await db.campaignLead.count({ where: { campaignId: c.id, status: { in: ["QUEUED", "IN_SEQUENCE"] } } });
     if (remaining === 0) {
@@ -139,11 +150,13 @@ async function sendStep(
   lead: Lead & { company: { name: string } | null },
   senderName: string,
   stepIndex: number,
+  settings: OutreachSettings,
 ) {
   const vars = variableMap(lead, senderName.split(" ")[0]);
   const subject = renderTemplate(step.subject, vars);
   const signature = inbox.signature ? `\n\n${inbox.signature}` : "";
-  const body = renderTemplate(step.body, vars) + signature;
+  const footer = settings.unsubscribeFooter ? `\n\n${settings.unsubscribeFooter}` : "";
+  const body = renderTemplate(step.body, vars) + signature + footer;
   const res = await emailProvider().send(credsFor(inbox), {
     from: { email: inbox.email, name: inbox.displayName },
     to: { email: lead.email, name: `${lead.firstName} ${lead.lastName}` },
@@ -187,6 +200,30 @@ async function sendStep(
     return;
   }
   if (emailProvider().name === "mock") await simulateEngagement(c, inbox, email.id, lead, subject, stepIndex);
+}
+
+/** Recomputes 7-day bounce rate; auto-pauses the inbox past the workspace threshold. */
+async function refreshInboxHealth(inboxId: string, workspaceId: string, threshold: number) {
+  const since = addDays(new Date(), -7);
+  const [sent, bounced] = await Promise.all([
+    db.email.count({ where: { inboxId, sentAt: { gte: since } } }),
+    db.email.count({ where: { inboxId, sentAt: { gte: since }, status: "BOUNCED" } }),
+  ]);
+  if (!sent) return;
+  const bounceRate = Math.round((bounced / sent) * 1000) / 10;
+  const inbox = await db.inbox.update({
+    where: { id: inboxId },
+    data: { bounceRate, healthScore: Math.max(20, Math.round(100 - bounceRate * 8)) },
+  });
+  if (sent >= 20 && bounceRate > threshold && inbox.status === "CONNECTED") {
+    await db.inbox.update({ where: { id: inboxId }, data: { status: "PAUSED" } });
+    await notify(workspaceId, {
+      type: "BOUNCE_SPIKE",
+      title: `Bounce spike on ${inbox.email}`,
+      body: `${bounceRate}% bounce rate over 7 days (threshold ${threshold}%). The inbox was paused to protect your reputation.`,
+      href: "/settings/infrastructure/inboxes",
+    });
+  }
 }
 
 const SAMPLE_REPLIES = [

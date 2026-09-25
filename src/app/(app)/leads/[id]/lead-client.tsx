@@ -1,4 +1,5 @@
 "use client";
+import { TimeAgo } from "@/components/time";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { MailCheck, Pencil, Rocket, Trash2, X } from "lucide-react";
@@ -10,7 +11,6 @@ import { AddToCampaignDialog } from "@/components/leads/leads-table";
 import { useAction } from "@/components/hooks/use-action";
 import { addLeadNote, deleteLeadNote, deleteLeads, updateLead, verifyLeads } from "@/server/actions/leads";
 import { addLeadsToCampaign } from "@/server/actions/campaigns";
-import { timeAgo } from "@/lib/utils";
 
 interface EditableLead {
   id: string;
@@ -134,7 +134,7 @@ export function NoteItem({ id, author, body, at, canDelete }: { id: string; auth
     <div className="group rounded-lg border bg-muted/30 p-3">
       <div className="mb-1 flex items-center justify-between text-[11px] text-muted-foreground">
         <span>
-          {author} · {timeAgo(at)}
+          {author} · <TimeAgo date={at} />
         </span>
         {canDelete && (
           <button onClick={() => exec(() => deleteLeadNote(id))} className="opacity-0 transition-opacity group-hover:opacity-100" aria-label="Delete note">

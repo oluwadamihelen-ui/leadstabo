@@ -1,4 +1,5 @@
 "use client";
+import { LocalDateTime, TimeAgo } from "@/components/time";
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -36,7 +37,7 @@ import { archiveConversation, bookMeeting, sendReply, setConversationLabel, setC
 import { addLeadNote } from "@/server/actions/leads";
 import { addLeadsToCampaign } from "@/server/actions/campaigns";
 import { aiAssist } from "@/server/actions/ai";
-import { cn, formatDateTime, timeAgo } from "@/lib/utils";
+import { cn } from "@/lib/utils";
 
 export interface ThreadItem {
   id: string;
@@ -110,7 +111,10 @@ export function InboxView({
   const [q, setQ] = useState(params.get("q") ?? "");
   const href = (next: Record<string, string | null>) => {
     const sp = new URLSearchParams(params.toString());
-    for (const [k, v] of Object.entries(next)) (v ? sp.set(k, v) : sp.delete(k));
+    for (const [k, v] of Object.entries(next)) {
+      if (v) sp.set(k, v);
+      else sp.delete(k);
+    }
     return `${pathname}?${sp}`;
   };
 
@@ -146,7 +150,7 @@ export function InboxView({
       </nav>
 
       {/* List */}
-      <div className={cn("flex min-h-0 flex-col border-r", selected && "hidden lg:flex")}>
+      <div className={cn("flex min-h-0 min-w-0 flex-col border-r", selected && "hidden lg:flex")}>
         <div className="space-y-2 border-b p-2">
           <div className="flex gap-1 overflow-x-auto lg:hidden">
             {FOLDER_LIST.map((f) => (
@@ -179,7 +183,7 @@ export function InboxView({
                 <div className="flex items-center gap-2">
                   {c.unread && <span className="size-1.5 shrink-0 rounded-full bg-primary" />}
                   <p className={cn("flex-1 truncate text-[13px]", c.unread ? "font-semibold" : "font-medium")}>{c.name}</p>
-                  <span className="shrink-0 text-[11px] text-muted-foreground">{timeAgo(c.at)}</span>
+                  <span className="shrink-0 text-[11px] text-muted-foreground"><TimeAgo date={c.at} /></span>
                 </div>
                 <p className="truncate text-xs text-muted-foreground">{c.company}</p>
                 <p className="mt-1 truncate text-xs">{c.subject}</p>
@@ -196,7 +200,7 @@ export function InboxView({
       </div>
 
       {/* Detail */}
-      <div className={cn("min-h-0", !selected && "hidden lg:block")}>
+      <div className={cn("min-h-0 min-w-0", !selected && "hidden lg:block")}>
         {selected ? (
           <Conversation key={selected.id} c={selected} campaigns={campaigns} canEdit={canEdit} mockMode={mockMode} back={href({ c: null })} />
         ) : (
@@ -245,7 +249,7 @@ function Conversation({ c, campaigns, canEdit, mockMode, back }: { c: Selected; 
               )}
               {c.meetingAt && (
                 <Badge tone="primary">
-                  <CalendarCheck className="size-3" /> {formatDateTime(c.meetingAt)}
+                  <CalendarCheck className="size-3" /> <LocalDateTime date={c.meetingAt} />
                 </Badge>
               )}
             </div>
@@ -337,7 +341,7 @@ function Conversation({ c, campaigns, canEdit, mockMode, back }: { c: Selected; 
             <div className="mb-2 flex flex-wrap items-center gap-2 text-xs">
               {t.direction === "in" ? <UserRound className="size-3.5 text-primary" /> : <Send className="size-3.5 text-muted-foreground" />}
               <span className="font-medium">{t.from}</span>
-              <span className="text-muted-foreground">{formatDateTime(t.at)}</span>
+              <span className="text-muted-foreground"><LocalDateTime date={t.at} /></span>
               {t.status === "BOUNCED" && <StatusBadge status="BOUNCED" />}
               {t.category && (
                 <span className="ml-auto flex items-center gap-1">

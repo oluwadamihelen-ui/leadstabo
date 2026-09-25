@@ -42,7 +42,7 @@ export function CampaignWizard({
   inboxes,
   sequences,
   composer,
-  timezone,
+  defaults,
   initialListId,
 }: {
   lists: { id: string; name: string; leadIds: string[]; total: number; verified: number }[];
@@ -50,7 +50,7 @@ export function CampaignWizard({
   inboxes: WInbox[];
   sequences: { id: string; name: string; steps: Omit<BuilderStep, "key">[] }[];
   composer: { leads: PreviewLead[]; offers: { id: string; name: string; valueProp: string; cta: string; proof: string | null }[]; icps: { id: string; name: string; pains: string[] }[]; signature: string | null; senderName: string };
-  timezone: string;
+  defaults: { dailyLimit: number; windowStart: number; windowEnd: number; timezone: string; trackOpens: boolean; stopOnReply: boolean };
   initialListId?: string;
 }) {
   const router = useRouter();
@@ -63,12 +63,12 @@ export function CampaignWizard({
   const [manual, setManual] = useState<Set<string>>(new Set());
   const [leadQuery, setLeadQuery] = useState("");
   const [inboxId, setInboxId] = useState(inboxes.find((i) => i.status === "CONNECTED")?.id ?? "");
-  const [dailyLimit, setDailyLimit] = useState(40);
-  const [windowStart, setWindowStart] = useState(8);
-  const [windowEnd, setWindowEnd] = useState(17);
-  const [tz, setTz] = useState(TIMEZONES.includes(timezone) ? timezone : "UTC");
-  const [trackOpens, setTrackOpens] = useState(true);
-  const [stopOnReply, setStopOnReply] = useState(true);
+  const [dailyLimit, setDailyLimit] = useState(defaults.dailyLimit);
+  const [windowStart, setWindowStart] = useState(defaults.windowStart);
+  const [windowEnd, setWindowEnd] = useState(defaults.windowEnd);
+  const [tz, setTz] = useState(defaults.timezone);
+  const [trackOpens, setTrackOpens] = useState(defaults.trackOpens);
+  const [stopOnReply, setStopOnReply] = useState(defaults.stopOnReply);
   const [offerId, setOfferId] = useState(composer.offers[0]?.id ?? "");
   const [steps, setSteps] = useState<BuilderStep[]>([
     { key: newKey(), subject: "{{first_name}}, quick idea for {{company_name}}", body: "Hi {{first_name}},\n\n\n\nWorth a quick chat next week?\n\n{{sender_name}}", delayDays: 0, enabled: true },
@@ -357,7 +357,7 @@ export function CampaignWizard({
               </div>
               <Field label="Timezone">
                 <NativeSelect value={tz} onChange={(e) => setTz(e.target.value)}>
-                  {TIMEZONES.map((t) => (
+                  {(TIMEZONES.includes(tz) ? TIMEZONES : [tz, ...TIMEZONES]).map((t) => (
                     <option key={t}>{t}</option>
                   ))}
                 </NativeSelect>

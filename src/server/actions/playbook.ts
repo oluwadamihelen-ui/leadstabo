@@ -57,13 +57,13 @@ export async function duplicatePlaybookItem(kind: "icp" | "offer", itemId: strin
     if (kind === "icp") {
       const i = await db.icp.findFirst({ where: { id: id.parse(itemId), workspaceId: ctx.workspaceId } });
       if (!i) throw new UserError("Not found");
-      const { id: _, createdAt: __, ...rest } = i;
-      await db.icp.create({ data: { ...rest, name: `${i.name} (copy)` } });
+      await db.icp.create({
+        data: { workspaceId: i.workspaceId, name: `${i.name} (copy)`, industry: i.industry, location: i.location, companySize: i.companySize, titles: i.titles, pains: i.pains, goals: i.goals, objections: i.objections },
+      });
     } else {
       const o = await db.offer.findFirst({ where: { id: id.parse(itemId), workspaceId: ctx.workspaceId } });
       if (!o) throw new UserError("Not found");
-      const { id: _, createdAt: __, ...rest } = o;
-      await db.offer.create({ data: { ...rest, name: `${o.name} (copy)` } });
+      await db.offer.create({ data: { workspaceId: o.workspaceId, name: `${o.name} (copy)`, pricing: o.pricing, valueProp: o.valueProp, proof: o.proof, cta: o.cta } });
     }
     return { ok: true as const, message: "Duplicated" };
   });

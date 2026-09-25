@@ -84,7 +84,6 @@ const SUGGESTED: Record<string, string> = {
 
 export async function seedDemoWorkspace(db: PrismaClient, workspaceId: string, ownerId: string) {
   const r = rng(42);
-  const pick = <T,>(arr: T[]) => arr[Math.floor(r() * arr.length)];
 
   // ── Companies & leads ────────────────────────────────────────────────
   const pool = prospects();
@@ -499,25 +498,23 @@ export async function seedDemoWorkspace(db: PrismaClient, workspaceId: string, o
   const txns: Prisma.CreditTransactionCreateManyInput[] = [];
   let bal = 25_000;
   txns.push({ workspaceId, amount: 25_000, category: "PLAN_GRANT", description: "Growth plan monthly credits", balanceAfter: bal, createdAt: daysAgo(34) });
-  const usage: [number, "LEAD_DISCOVERY" | "EMAIL_VERIFICATION" | "AI_GENERATION", string][] = [
-    [33, "LEAD_DISCOVERY", "Revealed 24 leads — US SaaS founders"],
-    [32, "EMAIL_VERIFICATION", "Verified 24 emails"],
-    [30, "LEAD_DISCOVERY", "Revealed 14 leads — UK agencies"],
-    [29, "EMAIL_VERIFICATION", "Verified 14 emails"],
-    [27, "AI_GENERATION", "AI: generate email"],
-    [22, "LEAD_DISCOVERY", "Revealed 12 leads — Nigerian schools"],
-    [21, "EMAIL_VERIFICATION", "Verified 12 emails"],
-    [14, "AI_GENERATION", "AI: personalize"],
-    [9, "LEAD_DISCOVERY", "Revealed 12 leads — Healthcare"],
-    [3, "AI_GENERATION", "AI: subject lines"],
+  const usage: [number, "LEAD_DISCOVERY" | "EMAIL_VERIFICATION" | "AI_GENERATION", number, string][] = [
+    [33, "LEAD_DISCOVERY", 20, "Revealed 20 leads — US SaaS founders"],
+    [32, "EMAIL_VERIFICATION", 20, "Verified 20 emails"],
+    [30, "LEAD_DISCOVERY", 20, "Revealed 20 leads — UK agencies"],
+    [29, "EMAIL_VERIFICATION", 20, "Verified 20 emails"],
+    [27, "AI_GENERATION", 2, "AI: generate email"],
+    [22, "LEAD_DISCOVERY", 16, "Revealed 16 leads — African schools"],
+    [21, "EMAIL_VERIFICATION", 16, "Verified 16 emails"],
+    [14, "AI_GENERATION", 2, "AI: personalize"],
+    [12, "LEAD_DISCOVERY", 5_127, "Bulk enrichment of CRM contacts"],
+    [9, "LEAD_DISCOVERY", 16, "Revealed 16 leads — Healthcare"],
+    [3, "AI_GENERATION", 2, "AI: subject lines"],
   ];
-  for (const [d, cat, desc] of usage) {
-    const amt = cat === "AI_GENERATION" ? 2 : Number(desc.match(/\d+/)?.[0] ?? 10);
-    bal -= amt * (cat === "LEAD_DISCOVERY" ? 1 : 1);
+  for (const [d, cat, amt, desc] of usage) {
+    bal -= amt;
     txns.push({ workspaceId, amount: -amt, category: cat, description: desc, balanceAfter: bal, createdAt: daysAgo(d) });
   }
-  bal -= 5_127;
-  txns.push({ workspaceId, amount: -5_127, category: "LEAD_DISCOVERY", description: "Bulk export — enrichment of CRM contacts", balanceAfter: bal, createdAt: daysAgo(12) });
   await db.creditTransaction.createMany({ data: txns });
   await db.creditBalance.upsert({
     where: { workspaceId },

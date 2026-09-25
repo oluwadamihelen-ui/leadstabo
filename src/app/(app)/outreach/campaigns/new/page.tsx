@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { db } from "@/lib/db";
 import { requireWorkspace } from "@/lib/auth/guard";
 import { composerContext } from "@/lib/queries/outreach";
+import { readOutreachSettings } from "@/lib/outreach-settings";
 import { CampaignWizard } from "./wizard";
 
 export const metadata: Metadata = { title: "New campaign" };
@@ -17,6 +18,7 @@ export default async function NewCampaignPage({ searchParams }: { searchParams: 
     db.sequence.findMany({ where: { workspaceId: w }, include: { steps: { orderBy: { order: "asc" } } }, orderBy: { updatedAt: "desc" } }),
     composerContext(w, ctx.user.name),
   ]);
+  const defaults = readOutreachSettings(ctx.workspace.outreachSettings);
 
   return (
     <CampaignWizard
@@ -52,7 +54,7 @@ export default async function NewCampaignPage({ searchParams }: { searchParams: 
       }))}
       sequences={sequences.map((s) => ({ id: s.id, name: s.name, steps: s.steps.map((x) => ({ subject: x.subject, body: x.body, delayDays: x.delayDays, enabled: x.enabled })) }))}
       composer={comp}
-      timezone={ctx.user.timezone}
+      defaults={{ dailyLimit: defaults.defaultDailyLimit, windowStart: defaults.sendWindowStart, windowEnd: defaults.sendWindowEnd, timezone: defaults.defaultTimezone === "UTC" ? ctx.user.timezone : defaults.defaultTimezone, trackOpens: defaults.trackOpens, stopOnReply: defaults.stopOnReply }}
     />
   );
 }

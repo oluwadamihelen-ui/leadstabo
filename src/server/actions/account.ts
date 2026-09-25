@@ -28,15 +28,6 @@ export async function setTheme(theme: "DARK" | "LIGHT" | "SYSTEM") {
   });
 }
 
-export async function setAccent(accent: string) {
-  return run(async () => {
-    const a = z.enum(["orange", "blue", "violet", "green"]).parse(accent);
-    const s = await me();
-    await db.user.update({ where: { id: s.userId }, data: { accentColor: a } });
-    return { ok: true as const, message: "Accent updated" };
-  });
-}
-
 export async function switchWorkspace(workspaceId: string) {
   return run(async () => {
     const s = await me();

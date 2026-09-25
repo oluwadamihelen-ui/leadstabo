@@ -1,4 +1,5 @@
 "use client";
+import { TimeAgo } from "@/components/time";
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useState, useTransition } from "react";
@@ -38,7 +39,7 @@ import { StatusBadge } from "@/components/status";
 import { useAction } from "@/components/hooks/use-action";
 import { addLeadsToList, deleteLeads, removeLeadsFromList, verifyLeads } from "@/server/actions/leads";
 import { addLeadsToCampaign } from "@/server/actions/campaigns";
-import { cn, formatNumber, timeAgo } from "@/lib/utils";
+import { cn, formatNumber } from "@/lib/utils";
 import { AddToListDialog } from "./add-to-list-dialog";
 
 export interface LeadRow {
@@ -95,7 +96,10 @@ export function LeadsTable({
 
   function update(next: Record<string, string | null>, keepPage = false) {
     const sp = new URLSearchParams(params.toString());
-    for (const [k, v] of Object.entries(next)) (v ? sp.set(k, v) : sp.delete(k));
+    for (const [k, v] of Object.entries(next)) {
+      if (v) sp.set(k, v);
+      else sp.delete(k);
+    }
     if (!keepPage) sp.delete("page");
     setSelected(new Set());
     startNav(() => router.push(`${pathname}?${sp}`));
@@ -270,7 +274,7 @@ export function LeadsTable({
                     <TD>
                       <StatusBadge status={r.emailStatus} />
                     </TD>
-                    <TD className="whitespace-nowrap text-muted-foreground">{r.lastContactedAt ? timeAgo(r.lastContactedAt) : "Never"}</TD>
+                    <TD className="whitespace-nowrap text-muted-foreground">{r.lastContactedAt ? <TimeAgo date={r.lastContactedAt} /> : "Never"}</TD>
                     <TD>
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>

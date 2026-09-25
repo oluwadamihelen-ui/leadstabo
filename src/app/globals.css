@@ -128,3 +128,21 @@
     @apply font-semibold text-foreground;
   }
 }
+
+@media print {
+  body * {
+    visibility: hidden;
+  }
+  .print-cert,
+  .print-cert * {
+    visibility: visible;
+  }
+  .print-cert {
+    position: absolute;
+    inset: 0 auto auto 0;
+    width: 100%;
+  }
+  .print-cert button {
+    display: none;
+  }
+}

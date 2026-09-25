@@ -10,7 +10,7 @@ export function AppShell({ data, children }: { data: ShellData; children: React.
   const [menu, setMenu] = useState(false);
   const [search, setSearch] = useState(false);
   return (
-    <div className="flex min-h-screen">
+    <div className="flex min-h-screen overflow-x-clip">
       <Sidebar data={data} open={menu} onClose={() => setMenu(false)} onSearch={() => setSearch(true)} />
       <div className="flex min-w-0 flex-1 flex-col">
         <Topbar data={data} onMenu={() => setMenu(true)} onSearch={() => setSearch(true)} />
