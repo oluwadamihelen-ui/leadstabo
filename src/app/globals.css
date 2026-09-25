@@ -1,0 +1,122 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 220 14% 97%;
+    --foreground: 240 10% 8%;
+    --surface: 0 0% 100%;
+    --elevated: 220 14% 95%;
+    --card: 0 0% 100%;
+    --card-foreground: 240 10% 8%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 240 10% 8%;
+    --primary: 22 88% 55%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 220 14% 93%;
+    --secondary-foreground: 240 10% 12%;
+    --muted: 220 14% 94%;
+    --muted-foreground: 240 4% 42%;
+    --accent: 220 14% 92%;
+    --accent-foreground: 240 10% 8%;
+    --destructive: 0 72% 51%;
+    --destructive-foreground: 0 0% 100%;
+    --success: 152 60% 38%;
+    --warning: 38 92% 45%;
+    --info: 217 85% 55%;
+    --violet: 262 70% 60%;
+    --border: 220 13% 88%;
+    --input: 220 13% 86%;
+    --ring: 22 88% 55%;
+    --radius: 0.625rem;
+  }
+
+  .dark {
+    --background: 240 6% 4%;
+    --foreground: 0 0% 96%;
+    --surface: 240 5% 6.5%;
+    --elevated: 240 5% 9%;
+    --card: 240 5% 7%;
+    --card-foreground: 0 0% 96%;
+    --popover: 240 5% 8%;
+    --popover-foreground: 0 0% 96%;
+    --primary: 22 92% 56%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 240 4% 12%;
+    --secondary-foreground: 0 0% 92%;
+    --muted: 240 4% 11%;
+    --muted-foreground: 240 5% 60%;
+    --accent: 240 4% 13%;
+    --accent-foreground: 0 0% 96%;
+    --destructive: 0 70% 55%;
+    --destructive-foreground: 0 0% 100%;
+    --success: 152 58% 48%;
+    --warning: 38 92% 55%;
+    --info: 217 90% 62%;
+    --violet: 262 80% 70%;
+    --border: 240 4% 14%;
+    --input: 240 4% 16%;
+    --ring: 22 92% 56%;
+  }
+
+  * {
+    @apply border-border;
+  }
+  html {
+    -webkit-tap-highlight-color: transparent;
+  }
+  body {
+    @apply bg-background text-foreground antialiased;
+    font-feature-settings: "cv11", "ss01";
+  }
+  ::selection {
+    background: hsl(var(--primary) / 0.35);
+  }
+}
+
+@layer components {
+  .label-caps {
+    @apply text-[11px] font-medium uppercase tracking-[0.12em] text-muted-foreground;
+  }
+  .glow-primary {
+    box-shadow: 0 0 0 1px hsl(var(--primary) / 0.35), 0 8px 30px -8px hsl(var(--primary) / 0.45);
+  }
+  .grid-bg {
+    background-image: linear-gradient(hsl(var(--border) / 0.5) 1px, transparent 1px),
+      linear-gradient(90deg, hsl(var(--border) / 0.5) 1px, transparent 1px);
+    background-size: 48px 48px;
+  }
+  .scrollbar-thin::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+  .scrollbar-thin::-webkit-scrollbar-thumb {
+    background: hsl(var(--border));
+    border-radius: 8px;
+  }
+  .prose-lesson h2 {
+    @apply mt-8 mb-3 text-xl font-semibold tracking-tight;
+  }
+  .prose-lesson h3 {
+    @apply mt-6 mb-2 text-base font-semibold;
+  }
+  .prose-lesson p {
+    @apply my-3 leading-7 text-foreground/85;
+  }
+  .prose-lesson ul {
+    @apply my-3 list-disc space-y-1.5 pl-5 text-foreground/85;
+  }
+  .prose-lesson ol {
+    @apply my-3 list-decimal space-y-1.5 pl-5 text-foreground/85;
+  }
+  .prose-lesson blockquote {
+    @apply my-5 border-l-2 border-primary pl-4 text-foreground/90 italic;
+  }
+  .prose-lesson code {
+    @apply rounded bg-muted px-1.5 py-0.5 font-mono text-[0.85em];
+  }
+  .prose-lesson strong {
+    @apply font-semibold text-foreground;
+  }
+}
