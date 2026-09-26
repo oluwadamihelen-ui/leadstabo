@@ -40,8 +40,10 @@ made one on **Neon** called `leadstabo`. (It keeps that old name — that's fine
 3. Turn **off** "Connection pooling" so the address has **no** `-pooler` in it.
 4. Copy the address. Put it in `.env`:
    ```
-   DATABASE_URL="postgresql://neondb_owner:YOUR_PASSWORD@ep-lucky-darkness-b47z92c8.c-6.us-east-2.aws.neon.tech/leadstabo?sslmode=require"
+   DATABASE_URL="postgresql://neondb_owner:YOUR_PASSWORD@ep-lucky-darkness-b47z92c8.c-6.us-east-2.aws.neon.tech/leadstabo?sslmode=require&connect_timeout=30"
    ```
+   (`connect_timeout=30` gives Neon time to wake up — on the free plan the database falls asleep
+   after 5 minutes of no use.)
 5. **Very important on your Windows PC:** your computer has an old setting that points at the
    school database. In **every new** Command Prompt window, type this first:
    ```
@@ -57,6 +59,12 @@ made one on **Neon** called `leadstabo`. (It keeps that old name — that's fine
    ✅ You should see "All migrations have been successfully applied" and "Seed complete".
 
 > If you see `Environment variable not found: DATABASE_URL` → there's no `.env` in this folder (go back to Step 0).
+> If you see **"Can't reach database server at ep-lucky-darkness…"** → Leadabo can't reach Neon:
+> 1. Check your internet connection.
+> 2. Open <https://console.neon.tech> → your project. If it says the compute is **suspended** or you've
+>    used up your free **compute hours**, wake it or upgrade the plan.
+> 3. Make sure `connect_timeout=30` is at the end of your `DATABASE_URL`, stop the app (Ctrl + C), run
+>    `set DATABASE_URL=` and `npm run dev` again.
 > If you see anything mentioning `ep-soft-truth` or `neondb` → STOP, you forgot `set DATABASE_URL=`.
 
 ---
