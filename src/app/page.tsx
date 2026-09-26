@@ -88,14 +88,14 @@ export default async function Landing() {
 
       {/* Hero */}
       <section className="relative overflow-hidden">
-        <div className="grid-bg absolute inset-0 opacity-30 [mask-image:radial-gradient(ellipse_at_top,black,transparent_70%)]" />
-        <div className="absolute left-1/2 top-[-240px] size-[720px] -translate-x-1/2 rounded-full bg-primary/20 blur-[140px]" />
+        <div className="grid-bg absolute inset-0 opacity-[0.15] [mask-image:radial-gradient(ellipse_at_top,black,transparent_70%)]" />
+        <div className="absolute inset-x-0 top-0 h-[420px] bg-gradient-to-b from-primary/[0.05] to-transparent" />
         <div className="relative mx-auto max-w-7xl px-4 pb-20 pt-20 text-center sm:px-6 sm:pt-28">
-          <span className="inline-flex items-center gap-2 rounded-full border border-primary/30 bg-primary/10 px-3 py-1 text-xs text-primary">
+          <span className="inline-flex items-center gap-2 rounded-full border border-primary/25 bg-primary/[0.06] px-3 py-1 text-xs font-medium text-primary">
             <Sparkles className="size-3.5" /> The outbound acquisition operating system
           </span>
           <h1 className="mx-auto mt-6 max-w-4xl text-5xl font-semibold tracking-tight sm:text-7xl">
-            Build your <span className="bg-gradient-to-r from-primary to-violet-300 bg-clip-text text-transparent">outbound engine.</span>
+            Build your <span className="text-primary">outbound engine.</span>
           </h1>
           <p className="mx-auto mt-6 max-w-2xl text-lg text-muted-foreground">
             Find the right leads, reach them with personalized outreach, and turn cold prospects into conversations — all from one platform.
