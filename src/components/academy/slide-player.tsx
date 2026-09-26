@@ -54,17 +54,17 @@ export function SlidePlayer({ dayLabel, title, summary, keyPoints, videoUrl, dur
     <div id="player" className="group relative overflow-hidden rounded-2xl border bg-[#07080b] text-white">
       <div className="relative aspect-video">
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_left,rgba(244,120,42,0.14),transparent_55%),radial-gradient(ellipse_at_bottom_right,rgba(57,135,229,0.14),transparent_55%)]" />
-        <div className="absolute left-[7%] top-[18%] h-[64%] w-[3px] rounded-full bg-gradient-to-b from-[#f4782a] via-[#f4782a]/60 to-transparent" />
+        <div className="absolute left-[7%] top-[18%] h-[64%] w-[3px] rounded-full bg-gradient-to-b from-[#6D28D9] via-[#6D28D9]/60 to-transparent" />
         <div className="absolute bottom-[14%] left-[7%] right-[7%] h-px bg-gradient-to-r from-[#3987e5]/70 via-white/10 to-transparent" />
         <div key={i} className="absolute inset-0 flex flex-col justify-center px-[11%] animate-fade-in">
-          <p className="text-[10px] font-semibold uppercase tracking-[0.25em] text-[#f4782a] sm:text-xs">{s.eyebrow}</p>
+          <p className="text-[10px] font-semibold uppercase tracking-[0.25em] text-[#6D28D9] sm:text-xs">{s.eyebrow}</p>
           <h2 className={cn("mt-3 font-semibold tracking-tight", i === 0 ? "text-2xl sm:text-4xl lg:text-5xl" : "text-xl sm:text-3xl lg:text-4xl")}>{s.title}</h2>
           {s.body && <p className="mt-4 max-w-2xl text-sm text-white/60 sm:text-base">{s.body}</p>}
         </div>
         <p className="absolute right-[7%] top-[8%] text-[10px] font-semibold uppercase tracking-[0.3em] text-white/30">Leadabo Academy</p>
         {!playing && i === 0 && t === 0 && (
-          <button onClick={() => setPlaying(true)} className="absolute bottom-[20%] right-[7%] flex items-center gap-2 rounded-xl border border-[#f4782a]/40 bg-[#f4782a]/20 px-4 py-2.5 text-sm font-medium text-[#f4782a] backdrop-blur transition-transform hover:scale-105" aria-label="Play lesson">
-            <Play className="size-4 fill-[#f4782a]" /> Play lesson
+          <button onClick={() => setPlaying(true)} className="absolute bottom-[20%] right-[7%] flex items-center gap-2 rounded-xl border border-[#6D28D9]/40 bg-[#6D28D9]/20 px-4 py-2.5 text-sm font-medium text-[#6D28D9] backdrop-blur transition-transform hover:scale-105" aria-label="Play lesson">
+            <Play className="size-4 fill-[#6D28D9]" /> Play lesson
           </button>
         )}
       </div>
@@ -79,7 +79,7 @@ export function SlidePlayer({ dayLabel, title, summary, keyPoints, videoUrl, dur
           <ChevronRight className="size-4" />
         </button>
         <div className="h-1 flex-1 overflow-hidden rounded-full bg-white/10">
-          <div className="h-full rounded-full bg-[#f4782a] transition-[width] duration-100" style={{ width: `${overall}%` }} />
+          <div className="h-full rounded-full bg-[#6D28D9] transition-[width] duration-100" style={{ width: `${overall}%` }} />
         </div>
         <span className="tabular-nums text-white/60">
           {i + 1}/{slides.length} · {durationMin} min

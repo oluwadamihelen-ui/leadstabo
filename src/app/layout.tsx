@@ -21,10 +21,10 @@ export const metadata: Metadata = {
 export const viewport: Viewport = { themeColor: "#09090b" };
 
 // Resolves "system" before paint to avoid a theme flash.
-const themeScript = `(function(){try{var t=document.cookie.match(/(?:^|; )lb_theme=([^;]+)/);t=t?t[1]:'dark';var d=t==='dark'||(t==='system'&&matchMedia('(prefers-color-scheme: dark)').matches);document.documentElement.classList.toggle('dark',d)}catch(e){}})()`;
+const themeScript = `(function(){try{var t=document.cookie.match(/(?:^|; )lb_theme=([^;]+)/);t=t?t[1]:'light';var d=t==='dark'||(t==='system'&&matchMedia('(prefers-color-scheme: dark)').matches);document.documentElement.classList.toggle('dark',d)}catch(e){}})()`;
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
-  const theme = (await cookies()).get("lb_theme")?.value ?? "dark";
+  const theme = (await cookies()).get("lb_theme")?.value ?? "light";
   return (
     <html
       lang="en"

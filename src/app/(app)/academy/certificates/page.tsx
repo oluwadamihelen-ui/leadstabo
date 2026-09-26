@@ -30,13 +30,13 @@ export default async function CertificatesPage() {
           {certs.map((c) => (
             <div key={c.id} className="print-cert relative overflow-hidden rounded-2xl border bg-[#07080b] p-8 text-white">
               <div className="absolute inset-3 rounded-xl border border-white/10" />
-              <div className="absolute left-8 top-8 h-20 w-[3px] bg-gradient-to-b from-[#f4782a] to-transparent" />
+              <div className="absolute left-8 top-8 h-20 w-[3px] bg-gradient-to-b from-[#6D28D9] to-transparent" />
               <div className="relative pl-6">
                 <div className="flex items-center gap-2">
                   <LogoMark className="size-6" />
                   <span className="text-[11px] font-semibold uppercase tracking-[0.3em] text-white/50">Leadabo Academy</span>
                 </div>
-                <p className="mt-8 text-[11px] uppercase tracking-[0.25em] text-[#f4782a]">Certificate of completion</p>
+                <p className="mt-8 text-[11px] uppercase tracking-[0.25em] text-[#6D28D9]">Certificate of completion</p>
                 <p className="mt-3 text-3xl font-semibold tracking-tight">{ctx.user.name}</p>
                 <p className="mt-2 text-sm text-white/60">has successfully completed</p>
                 <p className="mt-1 text-lg font-medium">{c.course.title}</p>

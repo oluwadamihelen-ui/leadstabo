@@ -49,9 +49,9 @@ export default async function Landing() {
   const cta = session ? { href: "/dashboard", label: "Open dashboard" } : { href: "/signup", label: "Start Building" };
 
   return (
-    <div className="dark min-h-screen bg-background text-foreground">
+    <div className="min-h-screen bg-background text-foreground">
       {/* Nav */}
-      <header className="sticky top-0 z-40 border-b border-white/5 bg-background/80 backdrop-blur-md">
+      <header className="sticky top-0 z-40 border-b border-border bg-background/80 backdrop-blur-md">
         <div className="mx-auto flex h-16 max-w-7xl items-center gap-8 px-4 sm:px-6">
           <Link href="/">
             <Logo />
@@ -95,7 +95,7 @@ export default async function Landing() {
             <Sparkles className="size-3.5" /> The outbound acquisition operating system
           </span>
           <h1 className="mx-auto mt-6 max-w-4xl text-5xl font-semibold tracking-tight sm:text-7xl">
-            Build your <span className="bg-gradient-to-r from-primary to-orange-300 bg-clip-text text-transparent">outbound engine.</span>
+            Build your <span className="bg-gradient-to-r from-primary to-violet-300 bg-clip-text text-transparent">outbound engine.</span>
           </h1>
           <p className="mx-auto mt-6 max-w-2xl text-lg text-muted-foreground">
             Find the right leads, reach them with personalized outreach, and turn cold prospects into conversations — all from one platform.
@@ -114,12 +114,12 @@ export default async function Landing() {
 
           {/* Product preview */}
           <div className="relative mx-auto mt-16 max-w-5xl">
-            <div className="absolute -inset-px rounded-2xl bg-gradient-to-b from-white/15 to-transparent" />
+            <div className="absolute -inset-px rounded-2xl bg-gradient-to-b from-foreground/10 to-transparent" />
             <div className="relative overflow-hidden rounded-2xl border bg-surface text-left shadow-2xl">
               <div className="flex items-center gap-1.5 border-b px-4 py-3">
-                <span className="size-2.5 rounded-full bg-white/10" />
-                <span className="size-2.5 rounded-full bg-white/10" />
-                <span className="size-2.5 rounded-full bg-white/10" />
+                <span className="size-2.5 rounded-full bg-foreground/10" />
+                <span className="size-2.5 rounded-full bg-foreground/10" />
+                <span className="size-2.5 rounded-full bg-foreground/10" />
                 <span className="ml-3 text-xs text-muted-foreground">app.leadabo.com/dashboard</span>
               </div>
               <div className="grid gap-4 p-5 sm:grid-cols-4">
@@ -163,7 +163,7 @@ export default async function Landing() {
       </section>
 
       {/* How it works */}
-      <section id="how" className="border-t border-white/5 py-24">
+      <section id="how" className="border-t border-border py-24">
         <div className="mx-auto max-w-7xl px-4 sm:px-6">
           <p className="label-caps text-primary">How Leadabo works</p>
           <h2 className="mt-3 max-w-2xl text-3xl font-semibold tracking-tight sm:text-4xl">One system. From ideal customer to booked meeting.</h2>
@@ -183,7 +183,7 @@ export default async function Landing() {
       </section>
 
       {/* Platform */}
-      <section id="platform" className="border-t border-white/5 py-24">
+      <section id="platform" className="border-t border-border py-24">
         <div className="mx-auto max-w-7xl space-y-24 px-4 sm:px-6">
           <Feature
             eyebrow="Lead generation"
@@ -199,7 +199,7 @@ export default async function Landing() {
                   ["Priya Patel", "VP Sales", "Atlas Labs"],
                   ["Kwame Mensah", "Proprietor", "Crest Schools"],
                 ].map(([n, t, c]) => (
-                  <div key={n} className="flex items-center gap-3 rounded-lg border bg-background/60 px-3 py-2.5 text-[13px]">
+                  <div key={n} className="flex items-center gap-3 rounded-lg border bg-muted/60 px-3 py-2.5 text-[13px]">
                     <span className="flex size-7 items-center justify-center rounded-full bg-primary/15 text-[10px] font-semibold text-primary">{n.split(" ").map((x) => x[0]).join("")}</span>
                     <span className="flex-1 font-medium">{n}</span>
                     <span className="hidden text-muted-foreground sm:inline">{t}</span>
@@ -227,7 +227,7 @@ export default async function Landing() {
                 ].map(([s, d, t], i) => (
                   <div key={s}>
                     {i > 0 && <div className="ml-6 h-3 w-px bg-border" />}
-                    <div className="flex items-center gap-3 rounded-lg border bg-background/60 px-3 py-2.5 text-[13px]">
+                    <div className="flex items-center gap-3 rounded-lg border bg-muted/60 px-3 py-2.5 text-[13px]">
                       <span className="flex size-7 items-center justify-center rounded-lg bg-primary text-primary-foreground">
                         <Mail className="size-3.5" />
                       </span>
@@ -254,7 +254,7 @@ export default async function Landing() {
                   ["getstabo.co", "94"],
                   ["stabomail.com", "92"],
                 ].map(([d, h]) => (
-                  <div key={d} className="flex items-center gap-3 rounded-lg border bg-background/60 px-3 py-2.5 text-[13px]">
+                  <div key={d} className="flex items-center gap-3 rounded-lg border bg-muted/60 px-3 py-2.5 text-[13px]">
                     <Globe className="size-4 text-muted-foreground" />
                     <span className="flex-1 font-medium">{d}</span>
                     {["SPF", "DKIM", "DMARC"].map((r) => (
@@ -265,7 +265,7 @@ export default async function Landing() {
                     <span className="w-8 text-right text-success">{h}</span>
                   </div>
                 ))}
-                <div className="flex items-center gap-3 rounded-lg border bg-background/60 px-3 py-2.5 text-[13px]">
+                <div className="flex items-center gap-3 rounded-lg border bg-muted/60 px-3 py-2.5 text-[13px]">
                   <Flame className="size-4 text-primary" />
                   <span className="flex-1">Warmup · nick@trystabo.com</span>
                   <span className="h-1.5 w-28 overflow-hidden rounded-full bg-muted">
@@ -283,7 +283,7 @@ export default async function Landing() {
             points={["Step-level reply rates", "Inbox & domain performance", "Lead engagement ranking"]}
             icon={BarChart3}
             visual={
-              <div className="flex h-44 items-end gap-2 rounded-lg border bg-background/60 p-4">
+              <div className="flex h-44 items-end gap-2 rounded-lg border bg-muted/60 p-4">
                 {[40, 55, 48, 70, 62, 85, 78, 92, 88, 100].map((h, i) => (
                   <div key={i} className="flex-1 rounded-t bg-[var(--series-1)]" style={{ height: `${h}%`, opacity: 0.5 + i * 0.05 }} />
                 ))}
@@ -294,9 +294,9 @@ export default async function Landing() {
       </section>
 
       {/* Academy */}
-      <section id="academy" className="border-t border-white/5 py-24">
+      <section id="academy" className="border-t border-border py-24">
         <div className="mx-auto max-w-7xl px-4 sm:px-6">
-          <div className="relative overflow-hidden rounded-3xl border bg-[#07080b] p-8 sm:p-12">
+          <div className="relative overflow-hidden rounded-3xl border border-transparent bg-gradient-to-br from-[#6D28D9] to-[#3B1370] p-8 sm:p-12">
             <div className="absolute left-10 top-12 h-24 w-[3px] bg-gradient-to-b from-primary to-transparent" />
             <div className="absolute -right-24 -top-24 size-80 rounded-full bg-info/15 blur-3xl" />
             <div className="relative grid gap-10 lg:grid-cols-2">
@@ -326,7 +326,7 @@ export default async function Landing() {
       </section>
 
       {/* Pricing */}
-      <section id="pricing" className="border-t border-white/5 py-24">
+      <section id="pricing" className="border-t border-border py-24">
         <div className="mx-auto max-w-7xl px-4 sm:px-6">
           <div className="text-center">
             <p className="label-caps text-primary">Pricing</p>
@@ -337,7 +337,7 @@ export default async function Landing() {
       </section>
 
       {/* FAQ */}
-      <section id="faq" className="border-t border-white/5 py-24">
+      <section id="faq" className="border-t border-border py-24">
         <div className="mx-auto max-w-3xl px-4 sm:px-6">
           <h2 className="text-center text-3xl font-semibold tracking-tight">Questions, answered.</h2>
           <div className="mt-10 space-y-2">
@@ -355,7 +355,7 @@ export default async function Landing() {
       </section>
 
       {/* Final CTA */}
-      <section className="border-t border-white/5 py-24">
+      <section className="border-t border-border py-24">
         <div className="mx-auto max-w-4xl px-4 text-center sm:px-6">
           <h2 className="text-4xl font-semibold tracking-tight sm:text-5xl">Your next 20 clients are in the database.</h2>
           <p className="mx-auto mt-4 max-w-xl text-muted-foreground">Build the engine that finds them, reaches them and books the call.</p>
@@ -367,7 +367,7 @@ export default async function Landing() {
         </div>
       </section>
 
-      <footer className="border-t border-white/5 py-10">
+      <footer className="border-t border-border py-10">
         <div className="mx-auto flex max-w-7xl flex-col items-center justify-between gap-4 px-4 text-xs text-muted-foreground sm:flex-row sm:px-6">
           <Logo />
           <div className="text-center sm:text-left">

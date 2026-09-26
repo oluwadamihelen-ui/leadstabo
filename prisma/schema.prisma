@@ -21,7 +21,7 @@ model User {
   avatarUrl        String?
   company          String?
   timezone         String   @default("UTC")
-  theme            Theme    @default(DARK)
+  theme            Theme    @default(LIGHT)
   accentColor      String   @default("orange")
   twoFactorEnabled Boolean  @default(false)
   twoFactorSecret  String? // encrypted
