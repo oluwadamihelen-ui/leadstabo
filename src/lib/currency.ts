@@ -27,11 +27,16 @@ export function planChargeAmount(p: PricedPlan, currency: Currency, interval: "M
   return interval === "ANNUAL" ? m * 12 : m;
 }
 
+// Priced to clear the same ~$0.03/credit floor as the Growth/Scale plans (a lead reveal — the
+// costliest credit action — runs ~$0.03-0.06 via Apollo). The old prices ($0.019 down to
+// $0.00999/credit at the top tier) were below that floor at every size: a customer topping up
+// with the 100k pack and spending it on lead reveals would have cost us several times what they
+// paid. See docs/PRICING-MARGIN-NOTES.md.
 export const CREDIT_PACKS = [
-  { credits: 1_000, usd: 1_900, ngn: 2_900_000 },
-  { credits: 5_000, usd: 7_900, ngn: 11_900_000 },
-  { credits: 20_000, usd: 24_900, ngn: 37_900_000 },
-  { credits: 100_000, usd: 99_900, ngn: 149_900_000 },
+  { credits: 1_000, usd: 4_500, ngn: 6_800_000 },
+  { credits: 5_000, usd: 17_500, ngn: 26_400_000 },
+  { credits: 20_000, usd: 62_000, ngn: 93_600_000 },
+  { credits: 100_000, usd: 300_000, ngn: 453_000_000 },
 ];
 
 export function packPrice(pack: (typeof CREDIT_PACKS)[number], currency: Currency) {

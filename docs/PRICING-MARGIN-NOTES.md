@@ -1,7 +1,8 @@
-# Pricing & margin notes (Growth / Scale, September 2026)
+# Pricing & margin notes (September 2026)
 
-Why Growth and Scale changed price, and the reasoning behind the new numbers. Starter and
-Enterprise were untouched.
+Why Growth, Scale and the credit top-up packs changed price, why two AI actions moved to a
+cheaper model, and the reasoning behind the new numbers. Starter and Enterprise plan prices were
+untouched.
 
 ## The problem
 
@@ -47,6 +48,42 @@ profitable at every tier already, since those cost far less per credit than a le
 `monthlySends`, `inboxLimit` and `teamMembers` were left unchanged — those aren't tied to a paid
 third-party API cost (SMTP sending is free, through the customer's own mailbox; DNS checks are
 free), so they carry no COGS risk.
+
+## Credit top-up packs — same bug, worse exposure
+
+The one-off top-up packs (`CREDIT_PACKS` in `src/lib/currency.ts`, bought from Settings → Billing
+independent of a plan) had the identical problem, and more of it — these are the cheapest way
+to buy credits, so they're the most attractive thing for a heavy lead-reveal user to buy:
+
+| Pack | Old price/credits | Old $/credit |
+|---|---|---|
+| 1,000 | $19 | $0.019 |
+| 5,000 | $79 | $0.0158 |
+| 20,000 | $249 | $0.01245 |
+| 100,000 | $999 | **$0.00999** |
+
+Every tier was below the $0.03 floor — the 100k pack in particular sold a credit for roughly
+a third of what a single lead reveal could cost us. Repriced the same way as Growth/Scale, holding
+the same $0.03-and-up floor with a volume discount as packs get bigger:
+
+| Pack | New price/credits | New $/credit |
+|---|---|---|
+| 1,000 | $45 | $0.045 |
+| 5,000 | $175 | $0.035 |
+| 20,000 | $620 | $0.031 |
+| 100,000 | $3,000 | $0.030 |
+
+## AI cost tiering — a free margin win, no price change
+
+Every `AI_GENERATION` action costs the same 2 credits, whether it's writing a full cold email or
+just listing five subject lines — but the tasks aren't equally expensive to run. `subject_lines`,
+`rewrite_cta`, `shorten` and `classify_reply` are small, well-specified jobs (`src/lib/providers/ai-anthropic.ts`)
+that don't need a flagship model; moved those four to **Claude Haiku 4.5** ($1/$5 per MTok vs.
+Opus 5's $5/$25 — roughly a 5x cut on those calls). `generate_email`, `improve`, `personalize`,
+`follow_up` and `suggest_response` — the tasks customers actually judge our AI quality on — stay on
+**Claude Opus 5**. No customer-facing change (same 2-credit cost, same JSON contract, same
+mock-provider fallback on error/refusal) — this is pure COGS reduction on an already-profitable
+credit type.
 
 ## Caveats — re-check before relying on this
 

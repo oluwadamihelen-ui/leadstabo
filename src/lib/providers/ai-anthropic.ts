@@ -4,7 +4,15 @@ import type { AiContext, AiProvider, AiResult, AiTask } from "./types";
 import { mockAi } from "./ai-mock";
 
 // Claude-backed copywriter. The key is read server-side only (ANTHROPIC_API_KEY).
-const MODEL = "claude-opus-5";
+//
+// Cost tiering: every AI_GENERATION action is priced the same (2 credits) regardless of task, so
+// the cheaper we can make the mechanical tasks (classifying a reply, listing subject lines,
+// tightening a CTA), the more margin the credit keeps. Those go to Haiku 4.5 — small, well-defined
+// jobs it handles fine. The tasks customers actually judge our AI quality on (writing the email
+// itself, personalizing it, drafting a reply) stay on Opus 5.
+const FLAGSHIP_MODEL = "claude-opus-5";
+const FAST_MODEL = "claude-haiku-4-5";
+const FAST_TASKS = new Set<AiTask>(["shorten", "subject_lines", "rewrite_cta", "classify_reply"]);
 
 const SYSTEM = `You are an expert B2B cold-email copywriter working inside Leadabo, an outbound sales platform.
 Write concise, specific, human emails (under 120 words), no fluff, no buzzwords, one clear call to action.
@@ -30,20 +38,25 @@ export function createAnthropicAi(apiKey: string): AiProvider {
     name: "anthropic",
     live: true,
     async run(task, ctx) {
+      const user = `${INSTRUCTIONS[task]}\n\nContext:\n${JSON.stringify(ctx, null, 2)}`;
       try {
-        const params = {
-          model: MODEL,
-          max_tokens: 2000,
-          output_config: { effort: "low" },
-          betas: ["server-side-fallback-2026-07-01"],
-          fallbacks: "default",
-          system: SYSTEM,
-          messages: [
-            { role: "user", content: `${INSTRUCTIONS[task]}\n\nContext:\n${JSON.stringify(ctx, null, 2)}` },
-          ],
-        };
-        // `fallbacks: "default"` re-runs a declined request on a fallback model server-side.
-        const res = await client.beta.messages.create(params as unknown as Anthropic.Beta.MessageCreateParamsNonStreaming);
+        const res = FAST_TASKS.has(task)
+          ? await client.messages.create({
+              model: FAST_MODEL,
+              max_tokens: 1000,
+              system: SYSTEM,
+              messages: [{ role: "user", content: user }],
+            })
+          : // `fallbacks: "default"` re-runs a declined request on a fallback model server-side.
+            await client.beta.messages.create({
+              model: FLAGSHIP_MODEL,
+              max_tokens: 2000,
+              output_config: { effort: "low" },
+              betas: ["server-side-fallback-2026-07-01"],
+              fallbacks: "default",
+              system: SYSTEM,
+              messages: [{ role: "user", content: user }],
+            } as unknown as Anthropic.Beta.MessageCreateParamsNonStreaming);
         if (res.stop_reason === "refusal") return mockAi.run(task, ctx);
         const text = res.content.map((b) => (b.type === "text" ? b.text : "")).join("");
         const json = text.slice(text.indexOf("{"), text.lastIndexOf("}") + 1);
