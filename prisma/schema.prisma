@@ -276,6 +276,16 @@ model CreditTransaction {
 
 // ─────────────────────────────── Leads ───────────────────────────────
 
+// A person's Apollo enrichment payload is the same for every workspace that reveals them, so this
+// cache is shared across all workspaces (not per-workspace) — the first workspace to reveal a given
+// externalId pays the Apollo bulk_match cost; every later reveal of the same person, by anyone, is
+// served from here for free. Each workspace is still charged its usual credit for the reveal.
+model LeadEnrichmentCache {
+  externalId String   @id
+  payload    Json
+  fetchedAt  DateTime @default(now())
+}
+
 model Company {
   id           String    @id @default(cuid())
   workspaceId  String

@@ -64,6 +64,28 @@ async function saveProspects(workspaceId: string, records: ProspectRecord[]) {
   return out;
 }
 
+const ENRICHMENT_CACHE_DAYS = 90;
+
+/**
+ * Enrichment is the same person for every workspace, so we only pay the provider once per person:
+ * check the shared cache first, and only call the lead database for ids nobody has fetched
+ * recently. Each workspace is still billed its usual credit for every lead it reveals — this only
+ * cuts what we pay Apollo, not what the customer is charged.
+ */
+async function revealViaCache(extIds: string[]): Promise<ProspectRecord[]> {
+  const cutoff = new Date(Date.now() - ENRICHMENT_CACHE_DAYS * 86_400_000);
+  const cached = await db.leadEnrichmentCache.findMany({ where: { externalId: { in: extIds }, fetchedAt: { gte: cutoff } } });
+  const cachedIds = new Set(cached.map((c) => c.externalId));
+  const missing = extIds.filter((x) => !cachedIds.has(x));
+  const fresh = missing.length ? await leadDatabase().getByIds(missing) : [];
+  if (fresh.length) {
+    await db.$transaction(
+      fresh.map((r) => db.leadEnrichmentCache.upsert({ where: { externalId: r.externalId }, create: { externalId: r.externalId, payload: r as object }, update: { payload: r as object, fetchedAt: new Date() } })),
+    );
+  }
+  return [...cached.map((c) => c.payload as unknown as ProspectRecord), ...fresh];
+}
+
 async function revealInternal(workspaceId: string, extIds: string[]) {
   const existing = await db.lead.findMany({ where: { workspaceId, externalId: { in: extIds } }, select: { externalId: true, id: true } });
   const have = new Set(existing.map((e) => e.externalId));
@@ -73,7 +95,7 @@ async function revealInternal(workspaceId: string, extIds: string[]) {
     const bal = await db.creditBalance.findUnique({ where: { workspaceId } });
     if ((bal?.balance ?? 0) < toReveal.length * CREDIT_COSTS.LEAD_REVEAL) throw new UserError(`Not enough credits — this needs ${toReveal.length}. Top up in Billing.`);
   }
-  const records = toReveal.length ? (await leadDatabase().getByIds(toReveal)).filter((r) => r.email) : [];
+  const records = toReveal.length ? (await revealViaCache(toReveal)).filter((r) => r.email) : [];
   if (records.length) {
     await spendCredits(workspaceId, records.length * CREDIT_COSTS.LEAD_REVEAL, "LEAD_DISCOVERY", `Revealed ${records.length} lead${records.length === 1 ? "" : "s"}`);
   }
