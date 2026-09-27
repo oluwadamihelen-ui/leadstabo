@@ -21,14 +21,17 @@ export const PLAN_CATALOG = [
   },
   {
     key: "growth",
-    monthlyPriceNgn: 14_900_000,
-    annualPriceNgn: 11_900_000,
+    // Priced so a workspace that spends its whole monthly allowance on lead reveals (the
+    // costliest credit action — funded by Apollo, ~$0.03–0.06/reveal) still clears real margin:
+    // $129 / 4,000 credits ≈ $0.032/credit. See docs/PRICING-MARGIN-NOTES.md.
+    monthlyPriceNgn: 19_400_000,
+    annualPriceNgn: 15_500_000,
     name: "Growth",
     tagline: "For teams building a repeatable outbound engine",
-    monthlyPrice: 9900,
-    annualPrice: 7900,
+    monthlyPrice: 12900,
+    annualPrice: 10300,
     monthlySends: 25_000,
-    leadCredits: 5_000,
+    leadCredits: 4_000,
     inboxLimit: 20,
     teamMembers: 5,
     supportLevel: "Priority chat support",
@@ -39,14 +42,16 @@ export const PLAN_CATALOG = [
   },
   {
     key: "scale",
-    monthlyPriceNgn: 37_900_000,
-    annualPriceNgn: 29_900_000,
+    // Same margin floor as Growth: $349 / 12,000 credits ≈ $0.029/credit — see
+    // docs/PRICING-MARGIN-NOTES.md.
+    monthlyPriceNgn: 53_100_000,
+    annualPriceNgn: 41_900_000,
     name: "Scale",
     tagline: "For agencies and high-volume sales orgs",
-    monthlyPrice: 24900,
-    annualPrice: 19900,
+    monthlyPrice: 34900,
+    annualPrice: 27900,
     monthlySends: 100_000,
-    leadCredits: 20_000,
+    leadCredits: 12_000,
     inboxLimit: 75,
     teamMembers: 15,
     supportLevel: "Dedicated success manager",
