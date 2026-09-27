@@ -30,6 +30,8 @@ interface WInbox {
   sentToday: number;
   warmup: string;
   signature: string | null;
+  /** Why this inbox can't send a real campaign yet (domain not verified / not enough warmup), or null if it's ready. */
+  launchBlocker: string | null;
 }
 
 const STEPS = ["Details", "Leads", "Inbox", "Write email", "Sequence", "Review", "Launch"];
@@ -310,6 +312,7 @@ export function CampaignWizard({
                     <div className="min-w-0 flex-1">
                       <p className="font-medium">{i.email}</p>
                       <p className="text-xs text-muted-foreground">{i.domain}</p>
+                      {i.launchBlocker && <p className="mt-1 text-xs text-warning">Not ready to launch yet — {i.launchBlocker}.</p>}
                     </div>
                     <div className="flex flex-wrap items-center gap-4 text-xs">
                       <StatusBadge status={i.status} />
@@ -464,15 +467,20 @@ export function CampaignWizard({
               <div className="glow-primary mx-auto flex size-14 items-center justify-center rounded-2xl bg-primary text-primary-foreground">
                 <Rocket className="size-6" />
               </div>
-              <h2 className="mt-5 text-xl font-semibold">Ready to launch “{name}”</h2>
+              <h2 className="mt-5 text-xl font-semibold">{inbox?.launchBlocker ? "Almost ready" : `Ready to launch "${name}"`}</h2>
               <p className="mt-2 text-sm text-muted-foreground">
                 {eligible.length} verified leads · {enabled.length}-step sequence · from {inbox?.email}. Emails send within your window at up to {dailyVolume}/day.
               </p>
+              {inbox?.launchBlocker && (
+                <p className="mx-auto mt-4 max-w-md rounded-lg border border-warning/30 bg-warning/10 px-4 py-3 text-[13px] text-warning">
+                  {inbox.email} isn&apos;t ready to send real campaign volume — {inbox.launchBlocker}. You can save this as a draft now and launch once that&apos;s done.
+                </p>
+              )}
               <div className="mt-6 flex flex-col justify-center gap-2 sm:flex-row">
                 <Button variant="secondary" onClick={() => submit(false)} loading={pending}>
                   <Save /> Save as draft
                 </Button>
-                <Button size="lg" onClick={() => submit(true)} loading={pending}>
+                <Button size="lg" onClick={() => submit(true)} loading={pending} disabled={!!inbox?.launchBlocker}>
                   <Rocket /> Launch Campaign
                 </Button>
               </div>

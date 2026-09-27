@@ -4,7 +4,7 @@ import { z } from "zod";
 import { db } from "@/lib/db";
 import { assertWorkspace } from "@/lib/auth/guard";
 import { id, ids, requiredText, text } from "@/lib/validation";
-import { launchCampaign, processDueSends, SENDABLE_STATUSES } from "@/lib/services/campaign-engine";
+import { inboxLaunchBlocker, launchCampaign, processDueSends, SENDABLE_STATUSES } from "@/lib/services/campaign-engine";
 import { normalizeSteps, stepSchema } from "@/lib/sequence-steps";
 import { run, UserError, type ActionResult } from "../action";
 
@@ -137,7 +137,14 @@ export async function updateCampaignSettings(campaignId: string, input: z.input<
     const c = await own(ctx.workspaceId, campaignId);
     const d = settingsSchema.parse(input);
     if (d.sendWindowEnd <= d.sendWindowStart) throw new UserError("Send window end must be after start");
-    if (!(await db.inbox.findFirst({ where: { id: d.inboxId, workspaceId: ctx.workspaceId } }))) throw new UserError("Inbox not found");
+    const inbox = await db.inbox.findFirst({ where: { id: d.inboxId, workspaceId: ctx.workspaceId }, include: { domain: true, warmup: true } });
+    if (!inbox) throw new UserError("Inbox not found");
+    // Switching an active campaign onto a different inbox is the same "start sending from this
+    // inbox" moment as launching — it needs the same domain/warmup check, not just at creation.
+    if (d.inboxId !== c.inboxId && c.status === "ACTIVE") {
+      const blocker = inboxLaunchBlocker(inbox);
+      if (blocker) throw new UserError(`${inbox.email} isn't ready to send yet — ${blocker}.`);
+    }
     await db.campaign.update({ where: { id: c.id }, data: { ...d, description: d.description || null } });
     return { ok: true as const, message: "Settings saved" };
   });

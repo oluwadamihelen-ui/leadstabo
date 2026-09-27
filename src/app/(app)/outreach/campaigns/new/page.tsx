@@ -3,6 +3,7 @@ import { db } from "@/lib/db";
 import { requireWorkspace } from "@/lib/auth/guard";
 import { composerContext } from "@/lib/queries/outreach";
 import { readOutreachSettings } from "@/lib/outreach-settings";
+import { inboxLaunchBlocker } from "@/lib/services/campaign-engine";
 import { CampaignWizard } from "./wizard";
 
 export const metadata: Metadata = { title: "New campaign" };
@@ -51,6 +52,7 @@ export default async function NewCampaignPage({ searchParams }: { searchParams: 
         sentToday: i.sentToday,
         warmup: i.warmup?.status ?? "NOT_STARTED",
         signature: i.signature,
+        launchBlocker: inboxLaunchBlocker(i),
       }))}
       sequences={sequences.map((s) => ({ id: s.id, name: s.name, steps: s.steps.map((x) => ({ subject: x.subject, body: x.body, delayDays: x.delayDays, enabled: x.enabled })) }))}
       composer={comp}

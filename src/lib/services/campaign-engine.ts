@@ -15,14 +15,34 @@ import { readOutreachSettings, type OutreachSettings } from "@/lib/outreach-sett
 /** Only these verification states may receive campaign email. */
 export const SENDABLE_STATUSES: EmailStatus[] = ["VALID", "CATCH_ALL"];
 
+/** Minimum days an inbox must have been actively warming up before it can send a real campaign. */
+export const MIN_WARMUP_DAYS = 7;
+
+/**
+ * Why an inbox can't launch a campaign yet, or null if it's ready. Shared by the server-side
+ * launch gate below and the campaign wizard, so the UI and the enforcement never disagree.
+ */
+export function inboxLaunchBlocker(inbox: { domain: { status: string } | null; warmup: { status: string; daysActive: number } | null }): string | null {
+  if (inbox.domain && inbox.domain.status !== "ACTIVE") {
+    return "its sending domain isn't fully verified yet (SPF/DKIM/DMARC/MX) — finish domain setup in Settings → Sending Domains";
+  }
+  const w = inbox.warmup;
+  if (!w || w.status === "NOT_STARTED") return `it hasn't started warmup yet — start it in Settings → Warmup (at least ${MIN_WARMUP_DAYS} days needed before sending)`;
+  if (w.status === "PAUSED") return "its warmup is paused — resume it in Settings → Warmup before sending";
+  if (w.status !== "COMPLETED" && w.daysActive < MIN_WARMUP_DAYS) return `it's only ${w.daysActive} day${w.daysActive === 1 ? "" : "s"} into warmup — needs ${MIN_WARMUP_DAYS} before it's safe to send real volume`;
+  return null;
+}
+
 export async function launchCampaign(campaignId: string, workspaceId: string) {
   const c = await db.campaign.findFirst({
     where: { id: campaignId, workspaceId },
-    include: { inbox: true, sequence: { include: { steps: true } }, leads: { include: { lead: true } } },
+    include: { inbox: { include: { domain: true, warmup: true } }, sequence: { include: { steps: true } }, leads: { include: { lead: true } } },
   });
   if (!c) throw new UserError("Campaign not found");
   if (!c.inbox) throw new UserError("Select a sending inbox before launching");
   if (c.inbox.status !== "CONNECTED") throw new UserError(`${c.inbox.email} is not connected`);
+  const blocker = inboxLaunchBlocker(c.inbox);
+  if (blocker) throw new UserError(`${c.inbox.email} isn't ready to send yet — ${blocker}.`);
   if (!c.sequence || !c.sequence.steps.some((s) => s.enabled)) throw new UserError("Add at least one enabled email step");
   const eligible = c.leads.filter((cl) => SENDABLE_STATUSES.includes(cl.lead.emailStatus));
   if (!eligible.length) throw new UserError("No verified leads in this campaign — verify emails first");
