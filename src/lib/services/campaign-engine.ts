@@ -122,9 +122,17 @@ export async function processDueSends(opts: { workspaceId?: string; force?: bool
         await db.campaignLead.update({ where: { id: cl.id }, data: { status: "COMPLETED", nextSendAt: null } });
         continue;
       }
+      // Claim this lead atomically before sending: an overlapping run (the cron tick and a
+      // user-triggered "send now" can genuinely overlap, since a send is a slow network call)
+      // could otherwise fetch and send the same due lead twice. Clearing nextSendAt only
+      // succeeds once per lead per due window; a second run's claim fails silently and skips it.
+      const claimed = await db.campaignLead.updateMany({ where: { id: cl.id, status: "IN_SEQUENCE", nextSendAt: cl.nextSendAt }, data: { nextSendAt: null } });
+      if (claimed.count === 0) continue; // already claimed by another run this tick
+
       const r = await sendStep(c, inbox, step, cl.id, cl.lead, senderName, cl.currentStep, settings);
       if (r.outcome === "failed") {
-        // Leave the lead scheduled so it retries on the next tick; stop this inbox on auth/connection errors.
+        // Restore the original schedule so it retries on the next tick; stop this inbox on auth/connection errors.
+        await db.campaignLead.updateMany({ where: { id: cl.id, status: "IN_SEQUENCE" }, data: { nextSendAt: cl.nextSendAt } });
         failures++;
         await db.inbox.update({ where: { id: inbox.id }, data: { lastError: r.error ?? "Send failed" } });
         if (/Authentication|credentials|reconnect|reach the mail server|host not found/i.test(r.error ?? "")) {

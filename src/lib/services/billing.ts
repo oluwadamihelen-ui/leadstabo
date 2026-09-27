@@ -198,9 +198,18 @@ export async function runBillingCycle() {
   let granted = 0;
   for (const s of subs) {
     if (s.status === "ACTIVE" && s.currentPeriodEnd > now && (!s.lastCreditGrantAt || s.lastCreditGrantAt < addDays(now, -30))) {
-      await addCredits(s.workspaceId, s.plan.leadCredits, "PLAN_GRANT", `${s.plan.name} plan monthly credits`);
-      await db.subscription.update({ where: { id: s.id }, data: { lastCreditGrantAt: now } });
-      granted++;
+      // Claim the grant atomically before crediting: two overlapping cron runs (a slow tick still
+      // running when the next one fires) would otherwise both read the same stale lastCreditGrantAt
+      // and both grant the month's credits. Whichever run's updateMany matches first "wins";
+      // the loser's claim touches zero rows and grants nothing.
+      const claimed = await db.subscription.updateMany({
+        where: { id: s.id, OR: [{ lastCreditGrantAt: null }, { lastCreditGrantAt: { lt: addDays(now, -30) } }] },
+        data: { lastCreditGrantAt: now },
+      });
+      if (claimed.count > 0) {
+        await addCredits(s.workspaceId, s.plan.leadCredits, "PLAN_GRANT", `${s.plan.name} plan monthly credits`);
+        granted++;
+      }
     }
     const daysLeft = (s.currentPeriodEnd.getTime() - now.getTime()) / 86400_000;
     if (s.status === "ACTIVE" && daysLeft <= 5 && daysLeft > 0 && !s.renewalRemindedAt) {

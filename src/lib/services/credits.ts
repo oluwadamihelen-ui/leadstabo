@@ -22,24 +22,27 @@ export async function spendCredits(
   tx: Prisma.TransactionClient = db,
 ) {
   if (amount <= 0) return null;
-  const updated = await tx.creditBalance.updateMany({
-    where: { workspaceId, balance: { gte: amount } },
-    data: { balance: { decrement: amount } },
-  });
-  if (updated.count === 0) throw new UserError(`Not enough credits — this needs ${amount}. Top up in Billing.`);
-  const bal = await tx.creditBalance.findUniqueOrThrow({ where: { workspaceId } });
+  // A plain updateMany + separate read is two round trips: under concurrent spends, a second
+  // call's decrement can land between this call's decrement and its read, so the read (and the
+  // balanceAfter recorded on the ledger) would reflect both spends, not just this one. A single
+  // UPDATE ... RETURNING makes the decrement and the resulting balance one atomic step.
+  const rows = await tx.$queryRaw<{ balance: number }[]>`
+    UPDATE "CreditBalance" SET balance = balance - ${amount} WHERE "workspaceId" = ${workspaceId} AND balance >= ${amount} RETURNING balance
+  `;
+  if (rows.length === 0) throw new UserError(`Not enough credits — this needs ${amount}. Top up in Billing.`);
+  const newBalance = rows[0].balance;
   await tx.creditTransaction.create({
-    data: { workspaceId, amount: -amount, category, description, balanceAfter: bal.balance },
+    data: { workspaceId, amount: -amount, category, description, balanceAfter: newBalance },
   });
-  if (bal.balance < LOW_CREDIT_THRESHOLD && bal.balance + amount >= LOW_CREDIT_THRESHOLD) {
+  if (newBalance < LOW_CREDIT_THRESHOLD && newBalance + amount >= LOW_CREDIT_THRESHOLD) {
     await notify(workspaceId, {
       type: "LOW_CREDITS",
       title: "Credits running low",
-      body: `Only ${bal.balance} credits left. Top up to keep finding and verifying leads.`,
+      body: `Only ${newBalance} credits left. Top up to keep finding and verifying leads.`,
       href: "/settings/billing",
     });
   }
-  return bal.balance;
+  return newBalance;
 }
 
 export async function addCredits(workspaceId: string, amount: number, category: CreditCategory, description: string, externalRef?: string) {
