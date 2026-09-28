@@ -16,7 +16,7 @@ import { readOutreachSettings, type OutreachSettings } from "@/lib/outreach-sett
 export const SENDABLE_STATUSES: EmailStatus[] = ["VALID", "CATCH_ALL"];
 
 /** Minimum days an inbox must have been actively warming up before it can send a real campaign. */
-export const MIN_WARMUP_DAYS = 7;
+export const MIN_WARMUP_DAYS = 14;
 
 /**
  * Why an inbox can't launch a campaign yet, or null if it's ready. Shared by the server-side
